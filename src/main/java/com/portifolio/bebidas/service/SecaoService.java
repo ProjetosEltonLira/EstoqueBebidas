@@ -11,6 +11,7 @@ import com.portifolio.bebidas.entities.*;
 import com.portifolio.bebidas.entities.mapper.SecaoMapper;
 import com.portifolio.bebidas.exceptions.BebidaComValorNegativoNaSecaoException;
 import com.portifolio.bebidas.exceptions.SecaoExcedeuLimiteDeCapacidadeException;
+import com.portifolio.bebidas.exceptions.TipoDeBebidaNaoPermitidoNaSecaoException;
 import com.portifolio.bebidas.exceptions.SecaoException;
 import com.portifolio.bebidas.repository.SecaoRepository;
 import jakarta.validation.Valid;
@@ -65,43 +66,34 @@ public class SecaoService {
 
     public SecaoEntity cadastrarBebidas(Long idSecao, InserirBebidaSecaoDto dto) {
 
-        List<BebidaSecaoEntity> bebidas ;
-
         var secao = secaoRepository.findById(idSecao)
                 .orElseThrow(() -> new SecaoException("Secao informada não existe, por favor, informar o número de uma exceção existe."));
 
         var quantidadeTotalDeBebidaNaSecao = getQuantidadeTotalDeBebidaNaSecao(secao);
-        var quantidadeBebidaParaRegistro = getQuantidadDeBebidaASeremInseridasNaSecao(dto.bebidas());
+        var quantidadeBebidasASeremInseridas = getQuantidadDeBebidaASeremInseridasNaSecao(dto.bebidas());
 
         if (TipoRegistro.ENTRADA.getDescricao().equals(dto.tipoRegistro())) {
-
-            var total = quantidadeTotalDeBebidaNaSecao + quantidadeBebidaParaRegistro;
-
+            var total = quantidadeTotalDeBebidaNaSecao + quantidadeBebidasASeremInseridas;
             validarLimiteDeBebidaNaSecao(secao, total);
-
-            //TODO criar logica para não aceitar Tipo de bebidas diferentes do permitido na secao
-            bebidas = instanciarBebidaSecao(secao, dto.bebidas(),TipoRegistro.ENTRADA);
-
-
-        }else {
-            //Registro de SAIDA
-            var quantidadeEmEstoque = quantidadeTotalDeBebidaNaSecao - quantidadeBebidaParaRegistro;
-            validarDisponibilidadeDeEstoque(quantidadeEmEstoque);
-            //TODO criar logica para debitar bebidas. as bebidas precisam estar disponíveis
-            bebidas = instanciarBebidaSecao(secao, dto.bebidas(),TipoRegistro.SAIDA);
         }
-
+//        else {
+//            //Registro de SAIDA
+//            var quantidadeEmEstoque = quantidadeTotalDeBebidaNaSecao - quantidadeBebidasASeremInseridas;
+//            validarDisponibilidadeDeEstoque(quantidadeEmEstoque);
+//        }
+        //TODO criar logica para não aceitar Tipo de bebidas diferentes do permitido na secao
+        var bebidas = instanciarBebidaSecao(secao, dto.bebidas(),dto.tipoRegistro());
         secao.setBebidaSecaoEntities(bebidas);
         return secaoRepository.save(secao);
     }
 
-    private void validarDisponibilidadeDeEstoque(double quantidadeEmEstoque) {
-        if ( quantidadeEmEstoque < ESTOQUE_ZERADO) {
-            throw new BebidaComValorNegativoNaSecaoException(
-                    "Limite mínimo da seção é 0, não há mais bebidas para serem retiradas.");
-
-        }
-    }
+//    private void validarDisponibilidadeDeEstoque(double quantidadeEmEstoque) {
+//        if ( quantidadeEmEstoque < ESTOQUE_ZERADO) {
+//            throw new BebidaComValorNegativoNaSecaoException(
+//                    "Limite mínimo da seção é 0, não há mais bebidas para serem retiradas.");
+//
+//        }
+//    }
 
     private void validarLimiteDeBebidaNaSecao(SecaoEntity secao, double total) {
         if (secao.getTipoBebida().isTipo(TipoBebida.ALCOOLICA) && total > LIMITE_BEBIDA_ALCOOLICA)
@@ -132,7 +124,7 @@ public class SecaoService {
                      .sum();
     }
 
-    private List<BebidaSecaoEntity> instanciarBebidaSecao(SecaoEntity secao, List<DadosBebidaSecaoDto> dto, TipoRegistro tipoRegistro) {
+    private List<BebidaSecaoEntity> instanciarBebidaSecao(SecaoEntity secao, List<DadosBebidaSecaoDto> dto, String tipoRegistro) {
 
             return dto.stream()
                     .map(bebida -> getBebidaSecao(secao, bebida,tipoRegistro))
@@ -141,28 +133,32 @@ public class SecaoService {
     }
 
     public BebidaSecaoEntity getBebidaSecao(SecaoEntity secaoEntity,
-                                            DadosBebidaSecaoDto bebida, TipoRegistro tipoRegistro) {
-
-        var bebidaSecaoEntity = new BebidaSecaoEntity();
+                                            DadosBebidaSecaoDto bebida, String tipoRegistro) {
         var id = new BebidaSecaoId();
+        var bebidaSecaoEntity = new BebidaSecaoEntity();
         var bebidaEntity = bebidaService.findById(bebida.id());
 
         id.setBebida(bebidaEntity);
         id.setSecao(secaoEntity);
-
         bebidaSecaoEntity.setId(id);
-        var quantidade_encontrada_bebida = buscarQuantidadeExistenteDaBebidaNaSecao(secaoEntity,bebida);
-        if (TipoRegistro.ENTRADA.equals(tipoRegistro))
-            bebidaSecaoEntity.setQuantidadeBebida( quantidade_encontrada_bebida + bebida.quantidade());
+
+        if (!bebidaEntity.getTipoBebida().equals(secaoEntity.getTipoBebida()))
+            throw new TipoDeBebidaNaoPermitidoNaSecaoException(
+                    String.format("Bebida do tipo %s somente pode ser inserida em secões que armazenam o mesmo tipo de bebida", bebidaEntity.getTipoBebida().getDescricao()));
+
+        var quantidadeEncontradaBebida = buscarQuantidadeExistenteDaBebidaNaSecao(secaoEntity,bebida);
+        if (TipoRegistro.ENTRADA.getDescricao().equals(tipoRegistro))
+            bebidaSecaoEntity.setQuantidadeBebida( quantidadeEncontradaBebida + bebida.quantidade());
 
         else{
             //TipoRegistro.SAIDA
-            var quantidadeSobrouEmEstoque = quantidade_encontrada_bebida - bebida.quantidade();
+            var quantidadeSobrouEmEstoque = quantidadeEncontradaBebida - bebida.quantidade();
             if (quantidadeSobrouEmEstoque < 0 )
-                throw new BebidaComValorNegativoNaSecaoException("Não é possível retirar mais bebida do que há em estoque.");
+                throw new BebidaComValorNegativoNaSecaoException(String.format("Não foi possível retirar %s da bebida %s, pois somente há %s em estoque.",bebida.quantidade(),bebida.id(),quantidadeEncontradaBebida));
 
             bebidaSecaoEntity.setQuantidadeBebida(0.0);
         }
+
         return bebidaSecaoEntity;
     }
 

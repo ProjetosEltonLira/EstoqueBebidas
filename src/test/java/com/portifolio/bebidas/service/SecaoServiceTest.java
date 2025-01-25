@@ -133,7 +133,7 @@ class SecaoServiceTest {
 
         when(bebidaService.findById(anyLong())).thenReturn(bebida2);
 
-        BebidaSecaoEntity bebidaSecaoResult = secaoService.getBebidaSecao(secao1,dadosBebidaSecaoDto, TipoRegistro.ENTRADA);
+        BebidaSecaoEntity bebidaSecaoResult = secaoService.getBebidaSecao(secao1,dadosBebidaSecaoDto, TipoRegistro.ENTRADA.getDescricao());
 
         assertEquals(bebida2, bebidaSecaoResult.getId().getBebida(), "A bebida retornada deve ser SELVAGEM (ID 2)");
         assertEquals(secao1, bebidaSecaoResult.getId().getSecao(), "A seção deve ser a configurada (ID 1)");
@@ -165,7 +165,7 @@ class SecaoServiceTest {
         // Mock do método bebidaService.findById
         when(bebidaService.findById(anyLong())).thenReturn(bebida2);
 
-        BebidaSecaoEntity bebidaSecaoResult = secaoService.getBebidaSecao(secao1,dadosBebidaSecaoDto, TipoRegistro.ENTRADA);
+        BebidaSecaoEntity bebidaSecaoResult = secaoService.getBebidaSecao(secao1,dadosBebidaSecaoDto, TipoRegistro.ENTRADA.getDescricao());
 
         assertEquals(bebida2, bebidaSecaoResult.getId().getBebida(), "A bebida retornada deve ser SELVAGEM (ID 4)");
         assertEquals(secao1, bebidaSecaoResult.getId().getSecao(), "A seção deve ser a configurada (ID 1)");
