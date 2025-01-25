@@ -9,7 +9,12 @@ import java.util.stream.Collectors;
 public enum TipoBebida {
 
     ALCOOLICA("ALCOOLICA", 1),
-    SEM_ALCOOL("SEM ALCOOL", 2);
+    SEM_ALCOOL("SEM ALCOOL", 2),
+ 	REFRIGERANTE("REFRIGERANTE", 3),
+	SUCO("SUCO",4),
+	CERVEJA("CERVEJA",5),
+	VINHO("VINHO",6),
+	AGUA("AGUA",7);
 
     private final String descricao;
     private final Integer codigo;

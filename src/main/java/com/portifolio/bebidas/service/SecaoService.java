@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class SecaoService {
@@ -65,119 +64,113 @@ public class SecaoService {
     }
 
     public SecaoEntity cadastrarBebidas(Long idSecao, InserirBebidaSecaoDto dto) {
+        var secao = findById(idSecao);
 
-        var secao = secaoRepository.findById(idSecao)
-                .orElseThrow(() -> new SecaoException("Secao informada não existe, por favor, informar o número de uma exceção existe."));
+        double quantidadeTotal = calcularQuantidadeTotal(secao, dto);
+        validarQuantidadePermitida(secao, quantidadeTotal);
 
-        var quantidadeTotalDeBebidaNaSecao = getQuantidadeTotalDeBebidaNaSecao(secao);
-        var quantidadeBebidasASeremInseridas = getQuantidadDeBebidaASeremInseridasNaSecao(dto.bebidas());
-
-        if (TipoRegistro.ENTRADA.getDescricao().equals(dto.tipoRegistro())) {
-            var total = quantidadeTotalDeBebidaNaSecao + quantidadeBebidasASeremInseridas;
-            validarLimiteDeBebidaNaSecao(secao, total);
-        }
-//        else {
-//            //Registro de SAIDA
-//            var quantidadeEmEstoque = quantidadeTotalDeBebidaNaSecao - quantidadeBebidasASeremInseridas;
-//            validarDisponibilidadeDeEstoque(quantidadeEmEstoque);
-//        }
-        //TODO criar logica para não aceitar Tipo de bebidas diferentes do permitido na secao
-        var bebidas = instanciarBebidaSecao(secao, dto.bebidas(),dto.tipoRegistro());
+        var bebidas = criarBebidasParaSecao(secao, dto);
         secao.setBebidaSecaoEntities(bebidas);
+
         return secaoRepository.save(secao);
     }
 
-//    private void validarDisponibilidadeDeEstoque(double quantidadeEmEstoque) {
-//        if ( quantidadeEmEstoque < ESTOQUE_ZERADO) {
-//            throw new BebidaComValorNegativoNaSecaoException(
-//                    "Limite mínimo da seção é 0, não há mais bebidas para serem retiradas.");
-//
-//        }
-//    }
-
-    private void validarLimiteDeBebidaNaSecao(SecaoEntity secao, double total) {
-        if (secao.getTipoBebida().isTipo(TipoBebida.ALCOOLICA) && total > LIMITE_BEBIDA_ALCOOLICA)
-            throw new SecaoExcedeuLimiteDeCapacidadeException(
-                    String.format("A capacidade máxima da seção foi excedida. Limite: %.2f. Total atual: %.2f", LIMITE_BEBIDA_ALCOOLICA, total));
-
-
-        if (!secao.getTipoBebida().isTipo(TipoBebida.ALCOOLICA) && total > LIMITE_BEBIDA_SEM_ALCOOL)
-            throw new SecaoExcedeuLimiteDeCapacidadeException(
-                    String.format("A capacidade máxima da seção foi excedida. Limite: %.2f Total atual: %.2f", LIMITE_BEBIDA_SEM_ALCOOL, total));
+    private double calcularQuantidadeTotal(SecaoEntity secao, InserirBebidaSecaoDto dto) {
+        var quantidadeExistente = calcularQuantidadeTotalNaSecao(secao);
+        var quantidadeASerInserida = calcularQuantidadeASerInserida(dto.bebidas());
+        return quantidadeExistente + (TipoRegistro.ENTRADA.getDescricao().equals(dto.tipoRegistro()) ? quantidadeASerInserida : 0);
     }
 
-
-    private static Double getQuantidadDeBebidaASeremInseridasNaSecao(List<DadosBebidaSecaoDto> bebidas) {
-            return bebidas.stream()
-                    .map(DadosBebidaSecaoDto::quantidade)
-                    .mapToDouble(Double::doubleValue)
-                    .sum();
-    }
-
-    private static Double getQuantidadeTotalDeBebidaNaSecao(SecaoEntity secao) {
-         if (secao.getBebidaSecaoEntities() == null)
-             return 0.0;
-         else
-             return secao.getBebidaSecaoEntities().stream()
-                     .map(BebidaSecaoEntity::getQuantidadeBebida)
-                     .mapToDouble(Double::doubleValue)
-                     .sum();
-    }
-
-    private List<BebidaSecaoEntity> instanciarBebidaSecao(SecaoEntity secao, List<DadosBebidaSecaoDto> dto, String tipoRegistro) {
-
-            return dto.stream()
-                    .map(bebida -> getBebidaSecao(secao, bebida,tipoRegistro))
-                    .collect(Collectors.toList());
-
-    }
-
-    public BebidaSecaoEntity getBebidaSecao(SecaoEntity secaoEntity,
-                                            DadosBebidaSecaoDto bebida, String tipoRegistro) {
-        var id = new BebidaSecaoId();
-        var bebidaSecaoEntity = new BebidaSecaoEntity();
-        var bebidaEntity = bebidaService.findById(bebida.id());
-
-        id.setBebida(bebidaEntity);
-        id.setSecao(secaoEntity);
-        bebidaSecaoEntity.setId(id);
-
-        if (!bebidaEntity.getTipoBebida().equals(secaoEntity.getTipoBebida()))
-            throw new TipoDeBebidaNaoPermitidoNaSecaoException(
-                    String.format("Bebida do tipo %s somente pode ser inserida em secões que armazenam o mesmo tipo de bebida", bebidaEntity.getTipoBebida().getDescricao()));
-
-        var quantidadeEncontradaBebida = buscarQuantidadeExistenteDaBebidaNaSecao(secaoEntity,bebida);
-        if (TipoRegistro.ENTRADA.getDescricao().equals(tipoRegistro))
-            bebidaSecaoEntity.setQuantidadeBebida( quantidadeEncontradaBebida + bebida.quantidade());
-
-        else{
-            //TipoRegistro.SAIDA
-            var quantidadeSobrouEmEstoque = quantidadeEncontradaBebida - bebida.quantidade();
-            if (quantidadeSobrouEmEstoque < 0 )
-                throw new BebidaComValorNegativoNaSecaoException(String.format("Não foi possível retirar %s da bebida %s, pois somente há %s em estoque.",bebida.quantidade(),bebida.id(),quantidadeEncontradaBebida));
-
-            bebidaSecaoEntity.setQuantidadeBebida(0.0);
+    private void validarQuantidadePermitida(SecaoEntity secao, double quantidadeTotal) {
+        double limite = secao.getTipoBebida().isTipo(TipoBebida.ALCOOLICA) ? LIMITE_BEBIDA_ALCOOLICA : LIMITE_BEBIDA_SEM_ALCOOL;
+        if (quantidadeTotal > limite) {
+            throw new SecaoExcedeuLimiteDeCapacidadeException(String.format(
+                    "A capacidade máxima da seção foi excedida. Limite: %.2f. Total atual: %.2f", limite, quantidadeTotal));
         }
-
-        return bebidaSecaoEntity;
     }
 
-    public Double buscarQuantidadeExistenteDaBebidaNaSecao(SecaoEntity secao, DadosBebidaSecaoDto bebida) {
-
-        return secao.getBebidaSecaoEntities()
-                .stream()
-                .filter(bebidaNaSecao -> bebidaNaSecao.getId().getBebida().getBebidaId().equals(bebida.id()))
-                .map(BebidaSecaoEntity::getQuantidadeBebida)
-                .reduce(0.0, Double::sum);
+    private List<BebidaSecaoEntity> criarBebidasParaSecao(SecaoEntity secao, InserirBebidaSecaoDto dto) {
+        return dto.bebidas().stream()
+                .map(bebida -> criarBebida(secao, bebida, dto.tipoRegistro()))
+                .toList();
     }
 
-    public ResponseSecaoDto procurarSecaoPorId(Long idSecao){
+    private BebidaSecaoEntity criarBebida(SecaoEntity secao, DadosBebidaSecaoDto bebidaDto, String tipoRegistro) {
+        validarTipoDeBebida(secao, bebidaDto);
+
+        var bebidaSecao = inicializarBebidaSecao(secao, bebidaDto);
+        atualizarQuantidadeBebida(secao, bebidaSecao, bebidaDto, tipoRegistro);
+
+        return bebidaSecao;
+    }
+
+    private void validarTipoDeBebida(SecaoEntity secao, DadosBebidaSecaoDto bebidaDto) {
+        var bebida = bebidaService.findById(bebidaDto.id());
+        if (!bebida.getTipoBebida().equals(secao.getTipoBebida())) {
+            throw new TipoDeBebidaNaoPermitidoNaSecaoException(String.format(
+                    "Bebida do tipo %s somente pode ser inserida em seções que armazenam o mesmo tipo de bebida",
+                    bebida.getTipoBebida().getDescricao()
+            ));
+        }
+    }
+
+    private BebidaSecaoEntity inicializarBebidaSecao(SecaoEntity secao, DadosBebidaSecaoDto bebidaDto) {
+        var bebida = bebidaService.findById(bebidaDto.id());
+
+        var id = new BebidaSecaoId();
+        id.setBebida(bebida);
+        id.setSecao(secao);
+
+        var bebidaSecao = new BebidaSecaoEntity();
+        bebidaSecao.setId(id);
+
+        return bebidaSecao;
+    }
+
+    private void atualizarQuantidadeBebida(SecaoEntity secao, BebidaSecaoEntity bebidaSecao,
+                                           DadosBebidaSecaoDto bebidaDto, String tipoRegistro) {
+        double quantidadeExistente = buscarQuantidadeExistente(secao, bebidaDto);
+
+        if (TipoRegistro.ENTRADA.getDescricao().equals(tipoRegistro)) {
+            bebidaSecao.setQuantidadeBebida(quantidadeExistente + bebidaDto.quantidade());
+        } else if (TipoRegistro.SAIDA.getDescricao().equals(tipoRegistro)) {
+            double novaQuantidade = quantidadeExistente - bebidaDto.quantidade();
+            if (novaQuantidade < 0) {
+                throw new BebidaComValorNegativoNaSecaoException(String.format(
+                        "Não foi possível retirar %.2f da bebida %s, pois somente há %.2f em estoque.",
+                        bebidaDto.quantidade(), bebidaDto.id(), quantidadeExistente));
+            }
+            bebidaSecao.setQuantidadeBebida(novaQuantidade);
+        }
+    }
+
+    private double calcularQuantidadeTotalNaSecao(SecaoEntity secao) {
+        return secao.getBebidaSecaoEntities() == null ? 0.0 :
+                secao.getBebidaSecaoEntities().stream()
+                        .mapToDouble(BebidaSecaoEntity::getQuantidadeBebida)
+                        .sum();
+    }
+
+    private double calcularQuantidadeASerInserida(List<DadosBebidaSecaoDto> bebidas) {
+        return bebidas.stream()
+                .mapToDouble(DadosBebidaSecaoDto::quantidade)
+                .sum();
+    }
+
+    private double buscarQuantidadeExistente(SecaoEntity secao, DadosBebidaSecaoDto bebidaDto) {
+        return secao.getBebidaSecaoEntities().stream()
+                .filter(b -> b.getId().getBebida().getBebidaId().equals(bebidaDto.id()))
+                .mapToDouble(BebidaSecaoEntity::getQuantidadeBebida)
+                .sum();
+    }
+
+    public ResponseSecaoDto procurarSecaoPorId(Long idSecao) {
         return secaoMapper.toResponseSecaoDto(findById(idSecao));
     }
 
     public SecaoEntity findById(Long idSecao) {
         return secaoRepository.findById(idSecao)
-                .orElseThrow(() -> new SecaoException("Secao com o Id " + idSecao+ " não encontrada"));
+                .orElseThrow(() -> new SecaoException("Seção com o Id " + idSecao + " não encontrada"));
     }
 }
 
