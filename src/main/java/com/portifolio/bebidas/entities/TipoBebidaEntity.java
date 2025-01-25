@@ -1,7 +1,7 @@
 package com.portifolio.bebidas.entities;
 
 
-import com.portifolio.bebidas.Enum.TipoBebida;
+import com.portifolio.bebidas.enums.TipoBebida;
 import jakarta.persistence.*;
 
 import java.util.Objects;

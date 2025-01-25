@@ -1,17 +1,10 @@
-package com.portifolio.bebidas.Service;
+package com.portifolio.bebidas.service;
 
 
-import com.portifolio.bebidas.Enum.TipoBebida;
-import com.portifolio.bebidas.controller.dto.request.InserirBebidaDto;
-import com.portifolio.bebidas.entities.BebidaEntity;
+import com.portifolio.bebidas.enums.TipoBebida;
 import com.portifolio.bebidas.entities.TipoBebidaEntity;
 import com.portifolio.bebidas.exceptions.TipoBebidaException;
-import com.portifolio.bebidas.repository.BebidaRepository;
 import com.portifolio.bebidas.repository.TipoBebidaRepository;
-import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 

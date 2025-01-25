@@ -1,4 +1,4 @@
-package com.portifolio.bebidas.Service;
+package com.portifolio.bebidas.service;
 
 
 import com.portifolio.bebidas.controller.dto.request.DadosBebidaSecaoDto;

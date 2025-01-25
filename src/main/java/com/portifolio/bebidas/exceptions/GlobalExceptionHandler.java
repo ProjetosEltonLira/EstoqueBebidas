@@ -1,6 +1,6 @@
 package com.portifolio.bebidas.exceptions;
 
-import com.portifolio.bebidas.exceptions.dto.InvalidParamDto;
+import com.portifolio.bebidas.exceptions.dto.ParamentrosInvalidosDto;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,14 +20,14 @@ public class GlobalExceptionHandler {
 
         var invalidParams = e.getFieldErrors()
                 .stream()
-                .map(fe -> new InvalidParamDto(fe.getField(), fe.getDefaultMessage()))
+                .map(fieldError -> new ParamentrosInvalidosDto(fieldError.getField(), fieldError.getDefaultMessage()))
                 .toList();
 
-        var pd = ProblemDetail.forStatus(400);
+        var pd = ProblemDetail.forStatus(422);
 
-        pd.setTitle("Invalid request parameters");
-        pd.setDetail("There is invalid fields on the request");
-        pd.setProperty("invalid-params", invalidParams);
+        pd.setTitle("Parametros da requisicao invalidos");
+        pd.setDetail("Ha campos invalidos na requisicao");
+        pd.setProperty("Parametros-invalidos", invalidParams);
 
         return pd;
     }

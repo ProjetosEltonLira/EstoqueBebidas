@@ -1,6 +1,6 @@
 package com.portifolio.bebidas.controller;
 
-import com.portifolio.bebidas.Service.SecaoService;
+import com.portifolio.bebidas.service.SecaoService;
 import com.portifolio.bebidas.controller.dto.request.InserirBebidaSecaoDto;
 
 

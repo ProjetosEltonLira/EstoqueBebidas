@@ -13,7 +13,7 @@ public class BebidaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonProperty (value = "id") //TODO criar um DTo para retornar os dados da bebida.
+    @JsonProperty (value = "id")
     @Column(name = "bebida_id")
     private Long bebidaId;
 

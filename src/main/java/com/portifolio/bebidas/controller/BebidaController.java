@@ -1,6 +1,6 @@
 package com.portifolio.bebidas.controller;
 
-import com.portifolio.bebidas.Service.BebidaService;
+import com.portifolio.bebidas.service.BebidaService;
 import com.portifolio.bebidas.controller.dto.request.InserirBebidaDto;
 import com.portifolio.bebidas.controller.dto.response.ApiResponseDto;
 import com.portifolio.bebidas.controller.dto.response.PaginationResponseDto;

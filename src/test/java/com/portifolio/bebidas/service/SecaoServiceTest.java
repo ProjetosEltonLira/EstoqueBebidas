@@ -1,6 +1,6 @@
-package com.portifolio.bebidas.Service;
+package com.portifolio.bebidas.service;
 
-import com.portifolio.bebidas.Enum.TipoRegistro;
+import com.portifolio.bebidas.enums.TipoRegistro;
 import com.portifolio.bebidas.controller.dto.request.DadosBebidaSecaoDto;
 import com.portifolio.bebidas.controller.dto.request.DadosSecaoDto;
 import com.portifolio.bebidas.controller.dto.request.SecaoDto;
@@ -130,7 +130,7 @@ class SecaoServiceTest {
         secao1.setBebidaSecaoEntities(listBebidasNaSecao);
         DadosBebidaSecaoDto dadosBebidaSecaoDto = new DadosBebidaSecaoDto(2L,50.0);
 
-        // Mock do método bebidaService.findById
+
         when(bebidaService.findById(anyLong())).thenReturn(bebida2);
 
         BebidaSecaoEntity bebidaSecaoResult = secaoService.getBebidaSecao(secao1,dadosBebidaSecaoDto, TipoRegistro.ENTRADA);

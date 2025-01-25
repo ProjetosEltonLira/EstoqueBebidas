@@ -1,7 +1,7 @@
 package com.portifolio.bebidas.entities.mapper;
 
 
-import com.portifolio.bebidas.Enum.TipoBebida;
+import com.portifolio.bebidas.enums.TipoBebida;
 import com.portifolio.bebidas.controller.dto.request.DadosBebidaDto;
 import com.portifolio.bebidas.controller.dto.response.BebidasNaSecaoResponseDto;
 import com.portifolio.bebidas.controller.dto.response.ResponseFindAllBebidasDto;

@@ -1,7 +1,7 @@
-package com.portifolio.bebidas.Service;
+package com.portifolio.bebidas.service;
 
 
-import com.portifolio.bebidas.Enum.TipoBebida;
+import com.portifolio.bebidas.enums.TipoBebida;
 import com.portifolio.bebidas.controller.dto.request.InserirBebidaDto;
 import com.portifolio.bebidas.entities.BebidaEntity;
 import com.portifolio.bebidas.exceptions.BebidasException;

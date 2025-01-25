@@ -1,7 +1,5 @@
-package com.portifolio.bebidas.Enum;
+package com.portifolio.bebidas.enums;
 
-import com.portifolio.bebidas.exceptions.BebidasException;
-import com.portifolio.bebidas.exceptions.TipoBebidaException;
 import com.portifolio.bebidas.exceptions.TipoRegistroException;
 
 import java.util.Arrays;
@@ -28,7 +26,7 @@ public enum TipoRegistro {
         return descricao;
     }
 
-    // Método para buscar o código a partir da descrição
+
     public static Integer getCodigoByDescricao(String descricao) {
         return Arrays.stream(TipoRegistro.values())
                 .filter(tipo -> tipo.getDescricao().equalsIgnoreCase(descricao))

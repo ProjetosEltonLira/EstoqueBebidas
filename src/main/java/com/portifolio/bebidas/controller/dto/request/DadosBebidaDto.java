@@ -1,7 +1,9 @@
 package com.portifolio.bebidas.controller.dto.request;
 
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.portifolio.bebidas.validations.ValidTipoBebida;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -17,7 +19,7 @@ public record DadosBebidaDto(
         @Min(value = 1)
         @JsonProperty("quantidade") Double quantidadeBebida,
 
-        @NotEmpty(message = "Informe o tipo da bebida ex: [ALCOOLICA, SEM ALCOOL]")
-        @JsonProperty("tipo_bebida") String tipoBebida
+        @ValidTipoBebida
+        @JsonProperty("tipo_bebida") @JsonAlias("tipoBebida") String tipoBebida
 
 ){}

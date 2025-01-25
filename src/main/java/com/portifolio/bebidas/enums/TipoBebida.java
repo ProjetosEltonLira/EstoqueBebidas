@@ -1,4 +1,4 @@
-package com.portifolio.bebidas.Enum;
+package com.portifolio.bebidas.enums;
 
 import com.portifolio.bebidas.exceptions.TipoBebidaException;
 
@@ -26,7 +26,7 @@ public enum TipoBebida {
         return descricao;
     }
 
-    // Método para buscar o código a partir da descrição
+
     public static Integer getCodigoByDescricao(String descricao) {
         return Arrays.stream(TipoBebida.values())
                 .filter(tipo -> tipo.getDescricao().equalsIgnoreCase(descricao))
