@@ -14,7 +14,6 @@ public record DadosBebidaSecaoDto(
 
         @Min(value = 1)
         @JsonProperty("quantidade") Double quantidade
-
 ){}
 
 

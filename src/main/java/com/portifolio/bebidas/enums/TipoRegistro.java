@@ -4,12 +4,13 @@ import com.portifolio.bebidas.exceptions.TipoRegistroException;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public enum TipoRegistro {
 
-    ENTRADA("ENTRADA", 1),
-    SAIDA("SAIDA", 2);
+    ENTRADA("ENTRADA", 0),
+    SAIDA("SAIDA", 1);
 
     private final String descricao;
     private final Integer codigo;
@@ -25,7 +26,6 @@ public enum TipoRegistro {
     public String getDescricao() {
         return descricao;
     }
-
 
     public static Integer getCodigoByDescricao(String descricao) {
         return Arrays.stream(TipoRegistro.values())

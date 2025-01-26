@@ -1,25 +1,32 @@
 package com.portifolio.bebidas.service;
 
 
-import com.portifolio.bebidas.enums.TipoBebida;
-import com.portifolio.bebidas.enums.TipoRegistro;
 import com.portifolio.bebidas.controller.dto.request.DadosBebidaSecaoDto;
 import com.portifolio.bebidas.controller.dto.request.InserirBebidaSecaoDto;
 import com.portifolio.bebidas.controller.dto.request.SecaoDto;
 import com.portifolio.bebidas.controller.dto.response.ResponseSecaoDto;
-import com.portifolio.bebidas.entities.*;
+import com.portifolio.bebidas.entities.BebidaSecaoEntity;
+import com.portifolio.bebidas.entities.BebidaSecaoId;
+import com.portifolio.bebidas.entities.HistoricoEntity;
+import com.portifolio.bebidas.entities.SecaoEntity;
 import com.portifolio.bebidas.entities.mapper.SecaoMapper;
+import com.portifolio.bebidas.enums.TipoBebida;
+import com.portifolio.bebidas.enums.TipoRegistro;
 import com.portifolio.bebidas.exceptions.BebidaComValorNegativoNaSecaoException;
 import com.portifolio.bebidas.exceptions.SecaoExcedeuLimiteDeCapacidadeException;
-import com.portifolio.bebidas.exceptions.TipoDeBebidaNaoPermitidoNaSecaoException;
 import com.portifolio.bebidas.exceptions.SecaoException;
+import com.portifolio.bebidas.exceptions.TipoDeBebidaNaoPermitidoNaSecaoException;
 import com.portifolio.bebidas.repository.SecaoRepository;
+import jakarta.persistence.Transient;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
 
 @Service
 public class SecaoService {
@@ -29,7 +36,6 @@ public class SecaoService {
 
     private final Double LIMITE_BEBIDA_ALCOOLICA = 500.0;
     private final Double LIMITE_BEBIDA_SEM_ALCOOL = 400.0;
-    private final Double ESTOQUE_ZERADO = 0.0;
     private final int    LIMITE_DE_SECOES = 5;
 
     private final BebidaService bebidaService;
@@ -63,7 +69,11 @@ public class SecaoService {
         }
     }
 
+    @Transient
     public SecaoEntity cadastrarBebidas(Long idSecao, InserirBebidaSecaoDto dto) {
+
+        var tipoRegistro = TipoRegistro.valueOf(dto.tipoRegistro().toUpperCase());
+
         var secao = findById(idSecao);
 
         double quantidadeTotal = calcularQuantidadeTotal(secao, dto);
@@ -71,6 +81,9 @@ public class SecaoService {
 
         var bebidas = criarBebidasParaSecao(secao, dto);
         secao.setBebidaSecaoEntities(bebidas);
+
+        var historico = new HistoricoEntity(dto.nomeSolicitante(),tipoRegistro,secao);
+        secao.getHistorico().add(historico);
 
         return secaoRepository.save(secao);
     }
@@ -92,7 +105,7 @@ public class SecaoService {
     private List<BebidaSecaoEntity> criarBebidasParaSecao(SecaoEntity secao, InserirBebidaSecaoDto dto) {
         return dto.bebidas().stream()
                 .map(bebida -> criarBebida(secao, bebida, dto.tipoRegistro()))
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private BebidaSecaoEntity criarBebida(SecaoEntity secao, DadosBebidaSecaoDto bebidaDto, String tipoRegistro) {

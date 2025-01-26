@@ -14,6 +14,9 @@ public record InserirBebidaSecaoDto(
         @ValidTipoRegistro//Quando tem validações personalidade, adicionar o Alias como nome da variável, dessa forma o valid também aceita.
         @JsonProperty("tipo_registro") @JsonAlias("tipoRegistro") String tipoRegistro,
 
+        @NotEmpty(message = "Informe o nome do solicitante")
+        @JsonProperty("nome_solicitante") @JsonAlias("nomeSolicitante") String nomeSolicitante,
+
         @NotEmpty(message = "Informe pelo menos uma bebida")
         @JsonProperty("bebidas") List<DadosBebidaSecaoDto> bebidas
 ){}
