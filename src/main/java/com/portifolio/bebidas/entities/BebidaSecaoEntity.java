@@ -1,13 +1,13 @@
 package com.portifolio.bebidas.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -25,6 +25,10 @@ public class BebidaSecaoEntity {
     @Column(name = "data_registro")
     private LocalDateTime dataCadastro;
 
+    @JsonBackReference
+    @OneToMany(mappedBy = "bebidaSecao", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<HistoricoEntity> historico = new ArrayList<>();
+
     //  @UpdateTimestamp    // Quando for atualizar, o hibernate atualiza.
     //  @Column(name = "updated_at")
     //  private LocalDateTime dataAtualizacao;
@@ -33,6 +37,15 @@ public class BebidaSecaoEntity {
     public BebidaSecaoEntity(BebidaSecaoId id, Double quantidadeBebida) {
         this.quantidadeBebida = quantidadeBebida;
         this.id = id;
+    }
+
+
+    public List<HistoricoEntity> getHistorico() {
+        return historico;
+    }
+
+    public void setHistorico(List<HistoricoEntity> historico) {
+        this.historico = historico;
     }
 
     public LocalDateTime getDataCadastro() {

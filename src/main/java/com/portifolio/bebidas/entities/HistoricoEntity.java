@@ -28,23 +28,34 @@ public class HistoricoEntity {
     @Column(name = "tipo_registro")
     private TipoRegistro tipoRegistro;
 
+    @Column(name = "volume_bebida", nullable = false)
+    private Double volumeBebida;
+
     @Column(name = "nome_solicitante", nullable = false)
     private String nomeSolicitante;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonManagedReference
-    @JoinColumn(name = "secao_id", nullable = false)
-    private SecaoEntity secao;
+    @JoinColumns({
+            @JoinColumn(name = "secao_id", referencedColumnName = "secao_id"),
+            @JoinColumn(name = "bebida_id", referencedColumnName = "bebida_id")
+    })
+    private BebidaSecaoEntity bebidaSecao;
 
     public HistoricoEntity() {}
-    public HistoricoEntity(String nomeSolicitante, TipoRegistro tipoRegistro, SecaoEntity secao) {
+    public HistoricoEntity(String nomeSolicitante, Double volumeBebida, TipoRegistro tipoRegistro,  BebidaSecaoEntity bebidaSecao) {
         this.nomeSolicitante = nomeSolicitante;
+        this.volumeBebida = volumeBebida;
         this.tipoRegistro = tipoRegistro;
-        this.secao = secao;
+        this.bebidaSecao = bebidaSecao;
     }
-    public HistoricoEntity(String nomeSolicitante, TipoRegistro tipoRegistro) {
-        this.nomeSolicitante = nomeSolicitante;
-        this.tipoRegistro = tipoRegistro;
+
+    public Double getVolumeBebida() {
+        return volumeBebida;
+    }
+
+    public void setVolumeBebida(Double volumeBebida) {
+        this.volumeBebida = volumeBebida;
     }
 
     public LocalDateTime getDataRegistro() {
@@ -71,12 +82,12 @@ public class HistoricoEntity {
         this.nomeSolicitante = nomeSolicitante;
     }
 
-    public SecaoEntity getSecao() {
-        return secao;
+    public BebidaSecaoEntity getBebidaSecao() {
+        return bebidaSecao;
     }
 
-    public void setSecao(SecaoEntity secao) {
-        this.secao = secao;
+    public void setBebidaSecao(BebidaSecaoEntity bebidaSecao) {
+        this.bebidaSecao = bebidaSecao;
     }
 
     public TipoRegistro getTipoRegistro() {
@@ -92,12 +103,12 @@ public class HistoricoEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         HistoricoEntity that = (HistoricoEntity) o;
-        return Objects.equals(historicoId, that.historicoId) && Objects.equals(dataRegistro, that.dataRegistro) && tipoRegistro == that.tipoRegistro && Objects.equals(nomeSolicitante, that.nomeSolicitante) && Objects.equals(secao, that.secao);
+        return Objects.equals(historicoId, that.historicoId) && Objects.equals(dataRegistro, that.dataRegistro) && tipoRegistro == that.tipoRegistro && Objects.equals(volumeBebida, that.volumeBebida) && Objects.equals(nomeSolicitante, that.nomeSolicitante) && Objects.equals(bebidaSecao, that.bebidaSecao);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(historicoId, dataRegistro, tipoRegistro, nomeSolicitante, secao);
+        return Objects.hash(historicoId, dataRegistro, tipoRegistro, volumeBebida, nomeSolicitante, bebidaSecao);
     }
 
     @Override
@@ -107,7 +118,7 @@ public class HistoricoEntity {
                 ", historicoId=" + historicoId +
                 ", tipoRegistro=" + tipoRegistro +
                 ", nomeFuncionario='" + nomeSolicitante + '\'' +
-                ", secaoEntity=" + secao +
+                ", secaoEntity=" + bebidaSecao +
                 '}';
     }
 }

@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,10 +32,6 @@ public class SecaoService {
 
 
     private static final Logger logger = LoggerFactory.getLogger(SecaoService.class);
-
-    private final Double LIMITE_BEBIDA_ALCOOLICA = 500.0;
-    private final Double LIMITE_BEBIDA_SEM_ALCOOL = 400.0;
-    private final int    LIMITE_DE_SECOES = 5;
 
     private final BebidaService bebidaService;
     private final TipoBebidaService tipoBebidaService;
@@ -54,13 +49,14 @@ public class SecaoService {
     public SecaoEntity criarSecao(@Valid SecaoDto dto) {
 
         long quantidadeSecoes = secaoRepository.quantidadeSecoesAtivas();
+        int LIMITE_DE_SECOES = 5;
         if (quantidadeSecoes > LIMITE_DE_SECOES){
             throw new SecaoException("Limite de 5 secoes atingida, para continuar uma sessao deve ser excluida.");
         }
 
         try {
             var tipoBebida = tipoBebidaService.getTipoBebida(dto.secao().tipoBebida());
-            SecaoEntity secaoEntity = new SecaoEntity(dto.secao().nome(),tipoBebida);
+            SecaoEntity secaoEntity = new SecaoEntity(dto.secao().nome(), tipoBebida);
             return secaoRepository.save(secaoEntity);
 
         } catch (RuntimeException e) {
@@ -72,8 +68,6 @@ public class SecaoService {
     @Transient
     public SecaoEntity cadastrarBebidas(Long idSecao, InserirBebidaSecaoDto dto) {
 
-        var tipoRegistro = TipoRegistro.valueOf(dto.tipoRegistro().toUpperCase());
-
         var secao = findById(idSecao);
 
         double quantidadeTotal = calcularQuantidadeTotal(secao, dto);
@@ -82,8 +76,6 @@ public class SecaoService {
         var bebidas = criarBebidasParaSecao(secao, dto);
         secao.setBebidaSecaoEntities(bebidas);
 
-        var historico = new HistoricoEntity(dto.nomeSolicitante(),tipoRegistro,secao);
-        secao.getHistorico().add(historico);
 
         return secaoRepository.save(secao);
     }
@@ -95,6 +87,8 @@ public class SecaoService {
     }
 
     private void validarQuantidadePermitida(SecaoEntity secao, double quantidadeTotal) {
+        Double LIMITE_BEBIDA_ALCOOLICA = 500.0;
+        Double LIMITE_BEBIDA_SEM_ALCOOL = 400.0;
         double limite = secao.getTipoBebida().isTipo(TipoBebida.ALCOOLICA) ? LIMITE_BEBIDA_ALCOOLICA : LIMITE_BEBIDA_SEM_ALCOOL;
         if (quantidadeTotal > limite) {
             throw new SecaoExcedeuLimiteDeCapacidadeException(String.format(
@@ -102,19 +96,28 @@ public class SecaoService {
         }
     }
 
-    private List<BebidaSecaoEntity> criarBebidasParaSecao(SecaoEntity secao, InserirBebidaSecaoDto dto) {
-        return dto.bebidas().stream()
-                .map(bebida -> criarBebida(secao, bebida, dto.tipoRegistro()))
+    private List<BebidaSecaoEntity> criarBebidasParaSecao(SecaoEntity secao, InserirBebidaSecaoDto dadosPedido) {
+        return dadosPedido.bebidas().stream()
+                .map(bebida -> criarBebida(secao, bebida, dadosPedido))
                 .collect(Collectors.toList());
     }
 
-    private BebidaSecaoEntity criarBebida(SecaoEntity secao, DadosBebidaSecaoDto bebidaDto, String tipoRegistro) {
+    private BebidaSecaoEntity criarBebida(SecaoEntity secao, DadosBebidaSecaoDto bebidaDto, InserirBebidaSecaoDto dadosPedido) {
         validarTipoDeBebida(secao, bebidaDto);
 
         var bebidaSecao = inicializarBebidaSecao(secao, bebidaDto);
-        atualizarQuantidadeBebida(secao, bebidaSecao, bebidaDto, tipoRegistro);
+        atualizarQuantidadeBebida(secao, bebidaSecao, bebidaDto, dadosPedido);
+        atualizarHistoricoBebida(secao, bebidaSecao,bebidaDto,dadosPedido);
+
 
         return bebidaSecao;
+    }
+
+    private void atualizarHistoricoBebida(SecaoEntity secao, BebidaSecaoEntity bebidaSecao, DadosBebidaSecaoDto bebidaDto, InserirBebidaSecaoDto dadosPedido) {
+
+        var tipoRegistro = TipoRegistro.valueOf(dadosPedido.tipoRegistro().toUpperCase());
+        var historico = new HistoricoEntity(dadosPedido.nomeSolicitante(),bebidaDto.quantidade(),tipoRegistro,bebidaSecao);
+        bebidaSecao.getHistorico().add(historico);
     }
 
     private void validarTipoDeBebida(SecaoEntity secao, DadosBebidaSecaoDto bebidaDto) {
@@ -141,12 +144,12 @@ public class SecaoService {
     }
 
     private void atualizarQuantidadeBebida(SecaoEntity secao, BebidaSecaoEntity bebidaSecao,
-                                           DadosBebidaSecaoDto bebidaDto, String tipoRegistro) {
+                                           DadosBebidaSecaoDto bebidaDto, InserirBebidaSecaoDto dadosPedido) {
         double quantidadeExistente = buscarQuantidadeExistente(secao, bebidaDto);
 
-        if (TipoRegistro.ENTRADA.getDescricao().equals(tipoRegistro)) {
+        if (TipoRegistro.ENTRADA.getDescricao().equals(dadosPedido.tipoRegistro())) {
             bebidaSecao.setQuantidadeBebida(quantidadeExistente + bebidaDto.quantidade());
-        } else if (TipoRegistro.SAIDA.getDescricao().equals(tipoRegistro)) {
+        } else if (TipoRegistro.SAIDA.getDescricao().equals(dadosPedido.tipoRegistro())) {
             double novaQuantidade = quantidadeExistente - bebidaDto.quantidade();
             if (novaQuantidade < 0) {
                 throw new BebidaComValorNegativoNaSecaoException(String.format(
