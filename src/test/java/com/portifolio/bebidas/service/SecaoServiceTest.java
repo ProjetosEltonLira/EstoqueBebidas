@@ -1,12 +1,11 @@
 package com.portifolio.bebidas.service;
 
 import com.portifolio.bebidas.controller.dto.request.InserirBebidaSecaoDto;
-import com.portifolio.bebidas.enums.TipoRegistro;
 import com.portifolio.bebidas.controller.dto.request.DadosBebidaSecaoDto;
 import com.portifolio.bebidas.controller.dto.request.DadosSecaoDto;
 import com.portifolio.bebidas.controller.dto.request.SecaoDto;
 import com.portifolio.bebidas.entities.*;
-import com.portifolio.bebidas.exceptions.SecaoException;
+import com.portifolio.bebidas.exceptions.SecaoAtingiuQuantidadeMaximaException;
 import com.portifolio.bebidas.repository.SecaoRepository;
 import com.portifolio.bebidas.repository.TipoBebidaRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -88,7 +87,7 @@ class SecaoServiceTest {
         SecaoDto secaoDto = new SecaoDto(dadosSecaoDto);
 
         // Act & Assert
-        SecaoException exception = assertThrows(SecaoException.class, () -> secaoService.criarSecao(secaoDto));
+        SecaoAtingiuQuantidadeMaximaException exception = assertThrows(SecaoAtingiuQuantidadeMaximaException.class, () -> secaoService.criarSecao(secaoDto));
         assertEquals("Limite de 5 secoes atingida, para continuar uma sessao deve ser excluida.", exception.getMessage());
 
         verify(secaoRepository, never()).save(any(SecaoEntity.class));
@@ -134,7 +133,7 @@ class SecaoServiceTest {
         listDadosBebidaSecaoDto.add(new DadosBebidaSecaoDto(1L,50.0));
         listDadosBebidaSecaoDto.add(new DadosBebidaSecaoDto(2L,50.0));
 
-        InserirBebidaSecaoDto inserirBebidaSecaoDto = new InserirBebidaSecaoDto("ENTRADA",listDadosBebidaSecaoDto);
+        InserirBebidaSecaoDto inserirBebidaSecaoDto = new InserirBebidaSecaoDto("ENTRADA","elton",listDadosBebidaSecaoDto);
 
 
         when(bebidaService.findById(anyLong())).thenReturn(bebida2);

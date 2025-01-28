@@ -1,6 +1,6 @@
 package com.portifolio.bebidas.enums;
 
-import com.portifolio.bebidas.exceptions.TipoBebidaException;
+import com.portifolio.bebidas.exceptions.TipoDeBebidaNaoEncontradoException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,29 +19,44 @@ public enum TipoBebida {
     private final String descricao;
     private final Integer codigo;
 
+    public Integer getCodigo() {
+        return codigo;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
     TipoBebida(String descricao, int codigo) {
         this.descricao = descricao;
         this.codigo = codigo;
     }
 
-    public Integer getCodigo() {
-        return codigo;
-    }
-    public String getDescricao() {
-        return descricao;
-    }
-
-
-    public static Integer getCodigoByDescricao(String descricao) {
-        return Arrays.stream(TipoBebida.values())
-                .filter(tipo -> tipo.getDescricao().equalsIgnoreCase(descricao))
+    /**
+     * Retorna o código do tipo de bebida baseado na descrição fornecida.
+     * Lança uma exceção se a descrição não for válida.
+     *
+     * @param descricaoTipoBebida descrição do tipo de bebida
+     * @return código associado ao tipo de bebida
+     */
+    public static Integer getCodigoByDescricao(String descricaoTipoBebida) {
+        return Arrays.stream(values())
+                .filter(tipo -> tipo.descricao.equalsIgnoreCase(descricaoTipoBebida))
                 .findFirst()
                 .map(TipoBebida::getCodigo)
-                .orElseThrow(() -> new TipoBebidaException("Tipo de bebida " + descricao + " não encontrada, tipo de bebidas permitidos: " + getDescricoesPermitidas()));
+                .orElseThrow(() -> new TipoDeBebidaNaoEncontradoException(
+                        "Tipo de bebida '" + descricaoTipoBebida + "' não encontrado. Tipos permitidos: " + getDescricoesPermitidas()
+                ));
     }
 
+
+    /**
+     * Retorna uma lista com todas as descrições permitidas.
+     *
+     * @return lista de descrições
+     */
     public static List<String> getDescricoesPermitidas() {
-        return Arrays.stream(TipoBebida.values())
+        return Arrays.stream(values())
                 .map(TipoBebida::getDescricao)
                 .collect(Collectors.toList());
     }

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BebidasException.class)
-    public ProblemDetail handleJBankException(BebidasException e) {
+    public ProblemDetail handleBebidasException(BebidasException e) {
         return e.toProblemDetail();
     }
 

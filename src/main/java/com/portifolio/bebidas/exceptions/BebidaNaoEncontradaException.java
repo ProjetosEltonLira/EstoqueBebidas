@@ -5,21 +5,21 @@ import org.springframework.http.ProblemDetail;
 
 import java.net.URI;
 
-public class TipoBebidaException extends BebidasException{
+public class BebidaNaoEncontradaException extends BebidasException{
 
     private final String detail;
 
-    public TipoBebidaException(String detail) {
+    public BebidaNaoEncontradaException(String detail) {
         super(detail);
         this.detail = detail;
     }
 
     @Override
     public ProblemDetail toProblemDetail() {
-        var pd = ProblemDetail.forStatus(HttpStatus.UNPROCESSABLE_ENTITY);
-        pd.setTitle("Tipo bebida invalida");
+        var pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        pd.setTitle("Bebida não encontrada");
         pd.setDetail(detail);
-        pd.setInstance(URI.create("/secao"));
+        pd.setInstance(URI.create("/bebida"));
         return pd;
     }
 }

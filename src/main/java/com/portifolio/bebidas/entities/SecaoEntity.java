@@ -1,6 +1,7 @@
 package com.portifolio.bebidas.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ public class SecaoEntity {
     @JoinColumn(name = "tipo_bebida_id", nullable = false)
     private TipoBebidaEntity tipoBebida;
 
+    @JsonIgnore
     @OneToMany (mappedBy = "id.secao",cascade = CascadeType.ALL , fetch = FetchType.EAGER)
     private List<BebidaSecaoEntity> bebidaSecaoEntities = new ArrayList<>();
 

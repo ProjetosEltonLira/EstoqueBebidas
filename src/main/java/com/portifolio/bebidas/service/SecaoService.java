@@ -12,10 +12,7 @@ import com.portifolio.bebidas.entities.SecaoEntity;
 import com.portifolio.bebidas.entities.mapper.SecaoMapper;
 import com.portifolio.bebidas.enums.TipoBebida;
 import com.portifolio.bebidas.enums.TipoRegistro;
-import com.portifolio.bebidas.exceptions.BebidaComValorNegativoNaSecaoException;
-import com.portifolio.bebidas.exceptions.SecaoExcedeuLimiteDeCapacidadeException;
-import com.portifolio.bebidas.exceptions.SecaoException;
-import com.portifolio.bebidas.exceptions.TipoDeBebidaNaoPermitidoNaSecaoException;
+import com.portifolio.bebidas.exceptions.*;
 import com.portifolio.bebidas.repository.SecaoRepository;
 import jakarta.persistence.Transient;
 import jakarta.validation.Valid;
@@ -29,7 +26,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class SecaoService {
-
 
     private static final Logger logger = LoggerFactory.getLogger(SecaoService.class);
 
@@ -51,18 +47,13 @@ public class SecaoService {
         long quantidadeSecoes = secaoRepository.quantidadeSecoesAtivas();
         int LIMITE_DE_SECOES = 5;
         if (quantidadeSecoes > LIMITE_DE_SECOES){
-            throw new SecaoException("Limite de 5 secoes atingida, para continuar uma sessao deve ser excluida.");
+            throw new SecaoAtingiuQuantidadeMaximaException("Limite de 5 secoes atingidas, para cadastrar uma nova secao, excluir uma secao existente.");
         }
 
-        try {
-            var tipoBebida = tipoBebidaService.getTipoBebida(dto.secao().tipoBebida());
-            SecaoEntity secaoEntity = new SecaoEntity(dto.secao().nome(), tipoBebida);
-            return secaoRepository.save(secaoEntity);
+        var tipoBebida = tipoBebidaService.getTipoBebida(dto.secao().tipoBebida());
+        SecaoEntity secaoEntity = new SecaoEntity(dto.secao().nome(), tipoBebida);
+        return secaoRepository.save(secaoEntity);
 
-        } catch (RuntimeException e) {
-            System.out.println(e.getMessage());
-            return null;
-        }
     }
 
     @Transient
@@ -124,9 +115,8 @@ public class SecaoService {
         var bebida = bebidaService.findById(bebidaDto.id());
         if (!bebida.getTipoBebida().equals(secao.getTipoBebida())) {
             throw new TipoDeBebidaNaoPermitidoNaSecaoException(String.format(
-                    "Bebida do tipo %s somente pode ser inserida em seções que armazenam o mesmo tipo de bebida",
-                    bebida.getTipoBebida().getDescricao()
-            ));
+                    "A bebida %s do tipo %s somente pode ser inserida em seções que armazenam o mesmo tipo de bebida",bebida.getBebidaId(),
+                    bebida.getTipoBebida().getDescricao()));
         }
     }
 
@@ -186,7 +176,7 @@ public class SecaoService {
 
     public SecaoEntity findById(Long idSecao) {
         return secaoRepository.findById(idSecao)
-                .orElseThrow(() -> new SecaoException("Seção com o Id " + idSecao + " não encontrada"));
+                .orElseThrow(() -> new SecaoNaoEncontradaException("Seção com o Id " + idSecao + " não encontrada"));
     }
 }
 

@@ -1,6 +1,7 @@
 package com.portifolio.bebidas.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import org.hibernate.annotations.CreationTimestamp;
@@ -22,9 +23,10 @@ public class BebidaSecaoEntity {
     private Double quantidadeBebida;
 
     @CreationTimestamp
-    @Column(name = "data_registro")
+    @Column(name = "data_cadastro")
     private LocalDateTime dataCadastro;
 
+    @JsonIgnore
     @JsonBackReference
     @OneToMany(mappedBy = "bebidaSecao", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<HistoricoEntity> historico = new ArrayList<>();

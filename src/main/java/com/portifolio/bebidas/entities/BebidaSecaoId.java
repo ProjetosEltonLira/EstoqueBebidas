@@ -11,7 +11,7 @@ import java.util.Objects;
 @Embeddable
 public class BebidaSecaoId {
 
-    @JsonIgnore
+    //@JsonIgnore
     @ManyToOne
     @JoinColumn(name = "secao_id")
     private SecaoEntity secao;

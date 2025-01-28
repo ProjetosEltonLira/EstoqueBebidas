@@ -1,41 +1,40 @@
 package com.portifolio.bebidas.service;
 
-
-import com.portifolio.bebidas.enums.TipoBebida;
+import com.portifolio.bebidas.entities.HistoricoEntity;
 import com.portifolio.bebidas.controller.dto.request.InserirBebidaDto;
 import com.portifolio.bebidas.entities.BebidaEntity;
-import com.portifolio.bebidas.exceptions.BebidasException;
-import com.portifolio.bebidas.exceptions.TipoBebidaException;
+import com.portifolio.bebidas.exceptions.BebidaNaoEncontradaException;
+import com.portifolio.bebidas.exceptions.TipoDeBebidaNaoEncontradoException;
 import com.portifolio.bebidas.repository.BebidaRepository;
-import com.portifolio.bebidas.repository.TipoBebidaRepository;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-
-
 @Service
 public class BebidaService {
 
-    private final BebidaRepository bebidaRepository;
-    private final TipoBebidaRepository tipoBebidaRepository;
+    private static final Logger logger = LoggerFactory.getLogger(BebidaService.class);
 
-    public BebidaService(BebidaRepository bebidaRepository, TipoBebidaRepository tipoBebidaRepository) {
+    private final BebidaRepository bebidaRepository;
+    private final TipoBebidaService tipoBebidaService;
+    private final HistoricoService historicoService;
+
+    public BebidaService(BebidaRepository bebidaRepository, TipoBebidaService tipoBebidaService, HistoricoService historicoService) {
         this.bebidaRepository = bebidaRepository;
-        this.tipoBebidaRepository = tipoBebidaRepository;
+        this.tipoBebidaService = tipoBebidaService;
+        this.historicoService = historicoService;
     }
 
     public BebidaEntity inserirBebida(@Valid InserirBebidaDto bebidaDto) {
 
-        Integer codigoBebida = TipoBebida.getCodigoByDescricao(bebidaDto.tipoBebida());
-        var tipoBebida = tipoBebidaRepository.findById(Long.valueOf(codigoBebida))
-                .orElseThrow(() -> new TipoBebidaException("Tipo de Bebida não encontrado"));
+        var tipoBebidaEntity = tipoBebidaService.getTipoBebida(bebidaDto.tipoBebida());
+        var bebidaEntity = new BebidaEntity(bebidaDto.nomeBebida(), tipoBebidaEntity);
 
-        var bebida = new BebidaEntity(bebidaDto.nomeBebida(), tipoBebida);
-
-        return bebidaRepository.save(bebida);
+        return bebidaRepository.save(bebidaEntity);
     }
 
     public Page<BebidaEntity> findAll(int page, int pageSize, String orderBy) {
@@ -51,7 +50,11 @@ public class BebidaService {
 
     public BebidaEntity findById(Long bebidaId) {
         return bebidaRepository.findById(bebidaId)
-                .orElseThrow(() -> new BebidasException("Bebida com o Id " + bebidaId+ " não encontrada"));
+                .orElseThrow(() -> new BebidaNaoEncontradaException("Bebida com o Id " + bebidaId + " não foi encontrada, para utilizar ela efetue o cadastro da bebida"));
     }
 
+    public Page<HistoricoEntity> procurarHistoricoDaBebida(int page, int pageSize, String orderBy, Long bebidaId) {
+
+        return historicoService.procurarHistoricoDaBebida(page, pageSize, orderBy, bebidaId);
+    }
 }
