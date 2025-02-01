@@ -1,0 +1,18 @@
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%X{X-Correlation-ID}] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>
+<!--
+    %d{yyyy-MM-dd HH:mm:ss} → Adiciona a data e hora do log.
+    [%X{X-Correlation-ID}] → Insere o Correlation ID (armazenado no MDC) no log.
+    %-5level → Exibe o nível do log (INFO, ERROR, DEBUG, TRACE e WARN).
+    %logger{36} → Nome do logger (classe que gerou o log).
+    %msg%n → A mensagem do log.
+-->

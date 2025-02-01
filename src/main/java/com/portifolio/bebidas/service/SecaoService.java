@@ -43,17 +43,19 @@ public class SecaoService {
     }
 
     public SecaoEntity criarSecao(@Valid SecaoDto dto) {
+        logger.info("Iniciando criação da seção: {}", dto.secao().nome());
 
         long quantidadeSecoes = secaoRepository.quantidadeSecoesAtivas();
         int LIMITE_DE_SECOES = 5;
-        if (quantidadeSecoes > LIMITE_DE_SECOES){
-            throw new SecaoAtingiuQuantidadeMaximaException("Limite de 5 secoes atingidas, para cadastrar uma nova secao, excluir uma secao existente.");
+        if (quantidadeSecoes >= LIMITE_DE_SECOES) {
+            logger.warn("Tentativa de criar uma nova seção falhou. Limite de {} seções ativas atingido.", LIMITE_DE_SECOES);
+            throw new SecaoAtingiuQuantidadeMaximaException("Limite de 5 seções atingido, para cadastrar uma nova seção, excluir uma seção existente.");
         }
 
         var tipoBebida = tipoBebidaService.getTipoBebida(dto.secao().tipoBebida());
         SecaoEntity secaoEntity = new SecaoEntity(dto.secao().nome(), tipoBebida);
-        return secaoRepository.save(secaoEntity);
 
+        return secaoRepository.save(secaoEntity);
     }
 
     @Transient
