@@ -41,7 +41,7 @@ public class GlobalExceptionHandler {
         //Modifiquei a forma de retorno, para poder retornar o correlation id no Header da exception
         //  return pd;
         return ResponseEntity.status(problemDetail.getStatus())
-                .headers(HeaderUtil.getCorrelationId())  // Inclui o Correlation ID nos headers
+                .headers(HeaderUtil.getCorrelationId())
                 .body(problemDetail);
     }
 }
