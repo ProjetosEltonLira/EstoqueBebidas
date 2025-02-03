@@ -16,8 +16,7 @@ import com.portifolio.bebidas.utils.JsonUtil;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
-import org.springframework.http.HttpHeaders;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -50,8 +49,6 @@ public class SecaoController {
                     .created(URI.create("/secao/" + response.getSecaoId()))
                     .headers(HeaderUtil.getCorrelationId()).build();
     }
-
-
 
     @PostMapping(value = "/{idSecao}")
     public ResponseEntity<Void> cadastrarBebidaNaSecao (

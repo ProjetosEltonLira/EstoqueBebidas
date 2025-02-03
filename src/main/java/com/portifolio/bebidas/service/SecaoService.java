@@ -14,10 +14,12 @@ import com.portifolio.bebidas.enums.TipoBebida;
 import com.portifolio.bebidas.enums.TipoRegistro;
 import com.portifolio.bebidas.exceptions.*;
 import com.portifolio.bebidas.repository.SecaoRepository;
+import com.portifolio.bebidas.utils.JsonUtil;
 import jakarta.persistence.Transient;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -43,7 +45,7 @@ public class SecaoService {
     }
 
     public SecaoEntity criarSecao(@Valid SecaoDto dto) {
-        logger.info("Iniciando criação da seção: {}", dto.secao().nome());
+        logger.info("Iniciando criação da seção: {}", JsonUtil.toJson(dto));
 
         long quantidadeSecoes = secaoRepository.quantidadeSecoesAtivas();
         int LIMITE_DE_SECOES = 5;
@@ -61,16 +63,29 @@ public class SecaoService {
     @Transient
     public SecaoEntity cadastrarBebidas(Long idSecao, InserirBebidaSecaoDto dto) {
 
-        var secao = findById(idSecao);
+        try {
+            logger.info("Inicio do cadastro da bebida na seção: {}", idSecao);
+            logger.info("Request recebida: {}", JsonUtil.toJson(dto));
 
-        double quantidadeTotal = calcularQuantidadeTotal(secao, dto);
-        validarQuantidadePermitida(secao, quantidadeTotal);
+            var secao = findById(idSecao);
 
-        var bebidas = criarBebidasParaSecao(secao, dto);
-        secao.setBebidaSecaoEntities(bebidas);
+            double quantidadeTotal = calcularQuantidadeTotal(secao, dto);
+            validarQuantidadePermitida(secao, quantidadeTotal);
 
+            var bebidas = criarBebidasParaSecao(secao, dto);
+            secao.setBebidaSecaoEntities(bebidas);
 
-        return secaoRepository.save(secao);
+            //TODO melhorar o log logger.info("Valores a serem persistidos");
+            return secaoRepository.save(secao);
+
+        } catch (InvalidDataAccessApiUsageException e) {
+            logger.error("Multiplas insercoes da mesma bebida", e);
+            throw new MultiplasInsercoesDaMesmaBebida("Não é possível inserir dois registros da mesma bebida em um mesmo pedido, faça mais de uma solicitação para inserir uma bebida duas vezes.");
+
+        } catch (RuntimeException e) {
+            logger.error("Erro não previsto:", e);
+            throw new RuntimeException("Erro não previsto ",e);
+        }
     }
 
     private double calcularQuantidadeTotal(SecaoEntity secao, InserirBebidaSecaoDto dto) {
@@ -101,7 +116,6 @@ public class SecaoService {
         var bebidaSecao = inicializarBebidaSecao(secao, bebidaDto);
         atualizarQuantidadeBebida(secao, bebidaSecao, bebidaDto, dadosPedido);
         atualizarHistoricoBebida(secao, bebidaSecao,bebidaDto,dadosPedido);
-
 
         return bebidaSecao;
     }
@@ -141,6 +155,7 @@ public class SecaoService {
 
         if (TipoRegistro.ENTRADA.getDescricao().equals(dadosPedido.tipoRegistro())) {
             bebidaSecao.setQuantidadeBebida(quantidadeExistente + bebidaDto.quantidade());
+
         } else if (TipoRegistro.SAIDA.getDescricao().equals(dadosPedido.tipoRegistro())) {
             double novaQuantidade = quantidadeExistente - bebidaDto.quantidade();
             if (novaQuantidade < 0) {

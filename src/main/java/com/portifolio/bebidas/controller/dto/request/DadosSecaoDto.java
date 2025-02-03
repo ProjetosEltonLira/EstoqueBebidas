@@ -12,7 +12,6 @@ public record DadosSecaoDto(
         @NotEmpty(message = "Informe um nome para a secao")
         @JsonProperty("nome") String nome,
 
-
         @ValidTipoBebida //Quando tem validações personalidade, adicionar o Alias como nome da variável, dessa forma o valid também aceita.
         @JsonProperty("tipo_bebida") @JsonAlias("tipoBebida")String tipoBebida
 ){}

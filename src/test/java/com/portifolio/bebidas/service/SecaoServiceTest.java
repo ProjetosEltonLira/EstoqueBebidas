@@ -8,14 +8,17 @@ import com.portifolio.bebidas.entities.*;
 import com.portifolio.bebidas.exceptions.SecaoAtingiuQuantidadeMaximaException;
 import com.portifolio.bebidas.repository.SecaoRepository;
 import com.portifolio.bebidas.repository.TipoBebidaRepository;
+import org.glassfish.jaxb.core.v2.TODO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.context.annotation.Description;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -29,153 +32,121 @@ class SecaoServiceTest {
     private BebidaService bebidaService;
 
     @Mock
-    private TipoBebidaRepository tipoBebidaRepository;
+    private TipoBebidaService tipoBebidaService;
 
     @InjectMocks
     private SecaoService secaoService;
+
+    TipoBebidaEntity tipoBebidaAlcoolica;
+    TipoBebidaEntity tipoBebidaSemAlcool;
+    BebidaEntity bebida1;
+    BebidaEntity bebida2;
+    BebidaEntity bebida3;
+    BebidaEntity bebida4;
+    BebidaEntity bebida5;
+    SecaoEntity secao1;
+    BebidaSecaoId id1;
+    BebidaSecaoId id2;
+    BebidaSecaoId id3;
+
+    List<BebidaSecaoEntity> listBebidasNaSecao = new ArrayList<>();
+    List<DadosBebidaSecaoDto> listDadosBebidaSecaoDto = new ArrayList<>();
+
+    InserirBebidaSecaoDto inserirBebidaSecaoDto;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        TipoBebidaEntity tipoBebida = new TipoBebidaEntity(1L,"ALCOOLICA");
-        BebidaEntity bebida1 = new BebidaEntity(1L , "Cachaça",tipoBebida);
-        BebidaEntity bebida2 = new BebidaEntity(1L , "SELVAGEM",tipoBebida);
-        BebidaEntity bebida3 = new BebidaEntity(1L , "SAQUE",tipoBebida);
-        SecaoEntity secao1 = new SecaoEntity(1L,"teste", tipoBebida,null);
-        BebidaSecaoId id1 = new BebidaSecaoId(bebida1,secao1);
-        BebidaSecaoId id2 = new BebidaSecaoId(bebida2,secao1);
-        BebidaSecaoId id3 = new BebidaSecaoId(bebida3,secao1);
+        tipoBebidaAlcoolica = new TipoBebidaEntity(1L,"ALCOOLICA");
+        tipoBebidaSemAlcool = new TipoBebidaEntity(2L,"SEM ALCOOL");
 
-        List<BebidaSecaoEntity> listBebidasNaSecao = new ArrayList<>();
-        listBebidasNaSecao.add(new BebidaSecaoEntity(id1,100.0));
-        listBebidasNaSecao.add(new BebidaSecaoEntity(id2,100.0));
-        listBebidasNaSecao.add(new BebidaSecaoEntity(id3,100.0));
+        bebida1 = new BebidaEntity(1L , "Cachaça", tipoBebidaAlcoolica);
+        bebida2 = new BebidaEntity(2L , "SELVAGEM", tipoBebidaAlcoolica);
+        bebida3 = new BebidaEntity(3L , "SAQUE", tipoBebidaAlcoolica);
 
-        secao1.setBebidaSecaoEntities(listBebidasNaSecao);
-    }
+        bebida4 = new BebidaEntity(4L , "CHÁ", tipoBebidaSemAlcool);
+        bebida5 = new BebidaEntity(5L , "SUCO", tipoBebidaSemAlcool);
 
-//    @Test
-//    void criarSecao_DeveCriarSecaoComSucesso() {
-//        // Arrange
-//        DadosSecaoDto dadosSecaoDto = new DadosSecaoDto("Secao 1", "ALCOOLICA");
-//        SecaoDto secaoDto = new SecaoDto(dadosSecaoDto);
-//
-//        TipoBebidaEntity tipoBebidaEntity = new TipoBebidaEntity();
-//        tipoBebidaEntity.setTipoBebidaId(1L);
-//
-//        when(secaoRepository.quantidadeSecoesAtivas()).thenReturn(3L);
-//        when(tipoBebidaRepository.findById(1L)).thenReturn(Optional.of(tipoBebidaEntity));
-//        when(secaoRepository.save(any(SecaoEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
-//
-//        // Act
-//        SecaoEntity secaoEntity = secaoService.criarSecao(secaoDto);
-//
-//        // Assert
-//        assertNotNull(secaoEntity);
-//        assertEquals("Secao 1", secaoEntity.getNomeSecao());
-//        assertEquals(tipoBebidaEntity, secaoEntity.getTipoBebida());
-//
-//        verify(secaoRepository, times(1)).save(any(SecaoEntity.class));
-//    }
+        //Secao com as bebidas do mesmo time
+        secao1 = new SecaoEntity(1L,"teste", tipoBebidaAlcoolica,null);
+        id1 = new BebidaSecaoId(bebida1,secao1);
+        id2 = new BebidaSecaoId(bebida2,secao1);
+        id3 = new BebidaSecaoId(bebida3,secao1);
 
-    @Test
-    void criarSecao_DeveLancarExcecaoQuandoLimiteDeSecoesForAtingido() {
-        // Arrange
-        when(secaoRepository.quantidadeSecoesAtivas()).thenReturn(6L);
-        DadosSecaoDto dadosSecaoDto = new DadosSecaoDto("Secao 1", "ALCOOLICA");
-        SecaoDto secaoDto = new SecaoDto(dadosSecaoDto);
-
-        // Act & Assert
-        SecaoAtingiuQuantidadeMaximaException exception = assertThrows(SecaoAtingiuQuantidadeMaximaException.class, () -> secaoService.criarSecao(secaoDto));
-        assertEquals("Limite de 5 secoes atingida, para continuar uma sessao deve ser excluida.", exception.getMessage());
-
-        verify(secaoRepository, never()).save(any(SecaoEntity.class));
-    }
-
-//    @Test
-//    void criarSecao_DeveLancarExcecaoQuandoTipoBebidaNaoEncontrado() {
-//        // Arrange
-//        DadosSecaoDto dadosSecaoDto = new DadosSecaoDto("Secao 1", "INEXISTENTE");
-//        SecaoDto secaoDto = new SecaoDto(dadosSecaoDto);
-//
-//        when(secaoRepository.quantidadeSecoesAtivas()).thenReturn(3L);
-//        when(tipoBebidaRepository.findById(anyLong())).thenReturn(Optional.empty());
-//
-//        // Act & Assert
-//        TipoBebidaException exception = assertThrows(TipoBebidaException.class, () -> secaoService.criarSecao(secaoDto));
-//        assertEquals("Tipo de bebida não encontrado!", exception.getMessage());
-//
-//        verify(secaoRepository, never()).save(any(SecaoEntity.class));
-//    }
-
-    @Test
-    void validar_metodoGetBebidaSecao() {
-        // Arrange
-
-        TipoBebidaEntity tipoBebida = new TipoBebidaEntity(1L,"ALCOOLICA");
-        BebidaEntity bebida1 = new BebidaEntity(1L , "Cachaça",tipoBebida);
-        BebidaEntity bebida2 = new BebidaEntity(2L , "SELVAGEM",tipoBebida);
-        BebidaEntity bebida3 = new BebidaEntity(3L , "SAQUE",tipoBebida);
-        SecaoEntity secao1 = new SecaoEntity(1L,"teste", tipoBebida,null);
-        BebidaSecaoId id1 = new BebidaSecaoId(bebida1,secao1);
-        BebidaSecaoId id2 = new BebidaSecaoId(bebida2,secao1);
-        BebidaSecaoId id3 = new BebidaSecaoId(bebida3,secao1);
-
-        List<BebidaSecaoEntity> listBebidasNaSecao = new ArrayList<>();
         listBebidasNaSecao.add(new BebidaSecaoEntity(id1,90.0));
         listBebidasNaSecao.add(new BebidaSecaoEntity(id2,100.0));
         listBebidasNaSecao.add(new BebidaSecaoEntity(id3,110.0));
 
         secao1.setBebidaSecaoEntities(listBebidasNaSecao);
 
-        List<DadosBebidaSecaoDto> listDadosBebidaSecaoDto = new ArrayList<>();
-        listDadosBebidaSecaoDto.add(new DadosBebidaSecaoDto(1L,50.0));
-        listDadosBebidaSecaoDto.add(new DadosBebidaSecaoDto(2L,50.0));
-
-        InserirBebidaSecaoDto inserirBebidaSecaoDto = new InserirBebidaSecaoDto("ENTRADA","elton",listDadosBebidaSecaoDto);
-
-
-        when(bebidaService.findById(anyLong())).thenReturn(bebida2);
-
-        var secaoResult = secaoService.cadastrarBebidas(secao1.getSecaoId(),inserirBebidaSecaoDto);
-
-//        assertEquals(bebida2, secaoResult.getBebidaSecaoEntities()tId().getBebida(), "A bebida retornada deve ser SELVAGEM (ID 2)");
-//        assertEquals(secao1, secaoResult.getId().getSecao(), "A seção deve ser a configurada (ID 1)");
-//        assertEquals(150.0, secaoResult.getQuantidadeBebida(), "A quantidade de bebida deve ser 150.0");
     }
-
 
     @Test
-    void validar_metodoGetBebidaSecao_InserirBebidaNovaQueNaoEstejaNaSecao() {
+    void criarSecao_DeveCriarSecaoComSucesso() {
         // Arrange
-        TipoBebidaEntity tipoBebida = new TipoBebidaEntity(1L, "ALCOOLICA");
-        BebidaEntity bebida1 = new BebidaEntity(1L, "Cachaça", tipoBebida);
-        BebidaEntity bebida2 = new BebidaEntity(2L, "SELVAGEM", tipoBebida);
-        BebidaEntity bebida3 = new BebidaEntity(3L, "SAQUE", tipoBebida);
-        BebidaEntity bebida4 = new BebidaEntity(3L, "Martini", tipoBebida);
-        SecaoEntity secao1 = new SecaoEntity(1L, "teste", tipoBebida, null);
-        BebidaSecaoId id1 = new BebidaSecaoId(bebida1, secao1);
-        BebidaSecaoId id2 = new BebidaSecaoId(bebida2, secao1);
-        BebidaSecaoId id3 = new BebidaSecaoId(bebida3, secao1);
+        DadosSecaoDto dadosSecaoDto = new DadosSecaoDto("Secao Teste", "ALCOOLICA");
+        SecaoDto secaoDto = new SecaoDto(dadosSecaoDto);
 
-        List<BebidaSecaoEntity> listBebidasNaSecao = new ArrayList<>();
-        listBebidasNaSecao.add(new BebidaSecaoEntity(id1, 90.0));
-        listBebidasNaSecao.add(new BebidaSecaoEntity(id2, 100.0));
-        listBebidasNaSecao.add(new BebidaSecaoEntity(id3, 110.0));
+        when(secaoRepository.quantidadeSecoesAtivas()).thenReturn(3L);
+        when(tipoBebidaService.getTipoBebida(dadosSecaoDto.tipoBebida())).thenReturn(tipoBebidaAlcoolica);
+        when(secaoRepository.save(any(SecaoEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        secao1.setBebidaSecaoEntities(listBebidasNaSecao);
-        DadosBebidaSecaoDto dadosBebidaSecaoDto = new DadosBebidaSecaoDto(4L, 50.0);
+        // Act
+        SecaoEntity secaoEntity = secaoService.criarSecao(secaoDto);
 
-        // Mock do método bebidaService.findById
-        when(bebidaService.findById(anyLong())).thenReturn(bebida2);
+        // Assert
+        assertNotNull(secaoEntity);
+        assertEquals("Secao Teste", secaoEntity.getNomeSecao());
+        assertEquals(tipoBebidaAlcoolica, secaoEntity.getTipoBebida());
 
-//        BebidaSecaoEntity bebidaSecaoResult = secaoService.getBebidaSecao(secao1,dadosBebidaSecaoDto, TipoRegistro.ENTRADA.getDescricao());
-//
-//        assertEquals(bebida2, bebidaSecaoResult.getId().getBebida(), "A bebida retornada deve ser SELVAGEM (ID 4)");
-//        assertEquals(secao1, bebidaSecaoResult.getId().getSecao(), "A seção deve ser a configurada (ID 1)");
-//        assertEquals(50.0, bebidaSecaoResult.getQuantidadeBebida(), "A quantidade de bebida deve ser 50.0");
-//    }
+        verify(secaoRepository, times(1)).save(any(SecaoEntity.class));
     }
 
+    @Test
+    void criarSecao_DeveLancarExcecaoQuandoLimiteDeSecoesForAtingido() {
+
+        DadosSecaoDto dadosSecaoDto = new DadosSecaoDto("Secao 1", "ALCOOLICA");
+        SecaoDto secaoDto = new SecaoDto(dadosSecaoDto);
+        // Arrange
+        when(secaoRepository.quantidadeSecoesAtivas()).thenReturn(6L);
+
+        // Act & Assert
+        var exception = assertThrows(SecaoAtingiuQuantidadeMaximaException.class, () -> secaoService.criarSecao(secaoDto));
+        assertEquals("Limite de 5 seções atingido, para cadastrar uma nova seção, excluir uma seção existente.", exception.getMessage());
+
+        verify(secaoRepository, never()).save(any(SecaoEntity.class));
+    }
+
+    @Test
+    void validar_metodoCadastrarBebida_InserirBebidasNovasQueNaoEstejamNaSecao() {
+        // Arrange
+        List<DadosBebidaSecaoDto> dadosBebidaSecaoDtoList = new ArrayList<>();
+
+        var dadosBebidaSecaoDto1 = new DadosBebidaSecaoDto(1L, 50.0);
+        var dadosBebidaSecaoDto2 = new DadosBebidaSecaoDto(2L, 70.0);
+        dadosBebidaSecaoDtoList.add(dadosBebidaSecaoDto1);
+        dadosBebidaSecaoDtoList.add(dadosBebidaSecaoDto2);
+
+        var dadosInserirBebidaSecaoDto = new InserirBebidaSecaoDto("ENTRADA","ELTON",dadosBebidaSecaoDtoList);
+
+
+        when(secaoRepository.findById(anyLong())).thenReturn(Optional.ofNullable(secao1));
+        when(bebidaService.findById(1L)).thenReturn(bebida1);
+        when(bebidaService.findById(2L)).thenReturn(bebida2);
+        when(bebidaService.findById(3L)).thenReturn(bebida3);
+        when(secaoRepository.save(any(SecaoEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var secaoEntity = secaoService.cadastrarBebidas(secao1.getSecaoId(),dadosInserirBebidaSecaoDto);
+
+
+        assertEquals(bebida1.getBebidaId(), secaoEntity.getBebidaSecaoEntities().get(0).getId().getBebida().getBebidaId(), "A bebida retornada deve ser Cachaça (ID 1)");
+        assertEquals(bebida1.getNomeBebida(), secaoEntity.getBebidaSecaoEntities().get(0).getId().getBebida().getNomeBebida(), "A bebida deve ter o nome Cachaça");
+        assertEquals(140, secaoEntity.getBebidaSecaoEntities().get(0).getQuantidadeBebida(), "A quantidade de bebida inserida deve ser 140, pois já existia 100 dessa mesma bebida na secao");
+        assertEquals(bebida2.getBebidaId(), secaoEntity.getBebidaSecaoEntities().get(1).getId().getBebida().getBebidaId(), "A bebida retornada deve ser SELVAGEM (ID 2)");
+        assertEquals(bebida2.getNomeBebida(), secaoEntity.getBebidaSecaoEntities().get(1).getId().getBebida().getNomeBebida(), "A bebida deve ter o nome SELVAGEM");
+        assertEquals(170, secaoEntity.getBebidaSecaoEntities().get(1).getQuantidadeBebida(), "A quantidade de bebida inserida deve ser 170, pois já existia 100 da bebida na secao");
+        verify(secaoRepository, times(1)).save(any(SecaoEntity.class));
+
+    }
 }
