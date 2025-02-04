@@ -6,6 +6,8 @@ import com.portifolio.bebidas.controller.dto.request.DadosSecaoDto;
 import com.portifolio.bebidas.controller.dto.request.SecaoDto;
 import com.portifolio.bebidas.entities.*;
 import com.portifolio.bebidas.exceptions.SecaoAtingiuQuantidadeMaximaException;
+import com.portifolio.bebidas.exceptions.SecaoExcedeuLimiteDeCapacidadeException;
+import com.portifolio.bebidas.exceptions.SecaoNaoEncontradaException;
 import com.portifolio.bebidas.repository.SecaoRepository;
 import com.portifolio.bebidas.repository.TipoBebidaRepository;
 import org.glassfish.jaxb.core.v2.TODO;
@@ -44,7 +46,8 @@ class SecaoServiceTest {
     BebidaEntity bebida3;
     BebidaEntity bebida4;
     BebidaEntity bebida5;
-    SecaoEntity secao1;
+    SecaoEntity secaoAlcoolica;
+    SecaoEntity secaoSemAlcool;
     BebidaSecaoId id1;
     BebidaSecaoId id2;
     BebidaSecaoId id3;
@@ -69,16 +72,18 @@ class SecaoServiceTest {
         bebida5 = new BebidaEntity(5L , "SUCO", tipoBebidaSemAlcool);
 
         //Secao com as bebidas do mesmo time
-        secao1 = new SecaoEntity(1L,"teste", tipoBebidaAlcoolica,null);
-        id1 = new BebidaSecaoId(bebida1,secao1);
-        id2 = new BebidaSecaoId(bebida2,secao1);
-        id3 = new BebidaSecaoId(bebida3,secao1);
+        secaoAlcoolica = new SecaoEntity(1L,"teste", tipoBebidaAlcoolica,null);
+        id1 = new BebidaSecaoId(bebida1,secaoAlcoolica);
+        id2 = new BebidaSecaoId(bebida2,secaoAlcoolica);
+        id3 = new BebidaSecaoId(bebida3,secaoAlcoolica);
+
+        secaoSemAlcool = new SecaoEntity(1L,"teste", tipoBebidaSemAlcool,null);
 
         listBebidasNaSecao.add(new BebidaSecaoEntity(id1,90.0));
         listBebidasNaSecao.add(new BebidaSecaoEntity(id2,100.0));
         listBebidasNaSecao.add(new BebidaSecaoEntity(id3,110.0));
 
-        secao1.setBebidaSecaoEntities(listBebidasNaSecao);
+        secaoAlcoolica.setBebidaSecaoEntities(listBebidasNaSecao);
 
     }
 
@@ -118,6 +123,60 @@ class SecaoServiceTest {
         verify(secaoRepository, never()).save(any(SecaoEntity.class));
     }
 
+
+    @Test
+    void validar_findById_SecaoInvalida() {
+
+        Long idSecao = 1L;
+        when(secaoRepository.findById(idSecao)).thenReturn(Optional.empty());
+
+        SecaoNaoEncontradaException exception = assertThrows(SecaoNaoEncontradaException.class, () -> secaoService.findById(idSecao));
+        assertEquals("Seção com o Id 1 não encontrada", exception.getMessage());
+        verify(secaoRepository, times(1)).findById(idSecao);
+    }
+
+    @Test
+    void validar_metodoCadastrarBebida_ExcecaoLimiteDeBebidaAtingido_SecaoAlcoolica() {
+
+        //Secao1 alcoolica
+        List<DadosBebidaSecaoDto> dadosBebidaSecaoDtoList = new ArrayList<>();
+        var dadosBebidaSecaoDto1 = new DadosBebidaSecaoDto(1L, 100.0);
+        var dadosBebidaSecaoDto2 = new DadosBebidaSecaoDto(2L, 101.0);
+        dadosBebidaSecaoDtoList.add(dadosBebidaSecaoDto1);
+        dadosBebidaSecaoDtoList.add(dadosBebidaSecaoDto2);
+
+        var dadosInserirBebidaSecaoDto = new InserirBebidaSecaoDto("ENTRADA","ELTON",dadosBebidaSecaoDtoList);
+
+        when(secaoRepository.findById(anyLong())).thenReturn(Optional.ofNullable(secaoAlcoolica));
+
+        var exception = assertThrows(SecaoExcedeuLimiteDeCapacidadeException.class,
+                () -> secaoService.cadastrarBebidas(secaoAlcoolica.getSecaoId(),dadosInserirBebidaSecaoDto));
+        assertEquals("A capacidade máxima da seção foi excedida. Limite: 500,00. Total atual: 501,00" , exception.getMessage());
+
+    }
+
+    @Test
+    void validar_metodoCadastrarBebida_ExcecaoLimiteDeBebidaAtingido_SecaoSemAlcool() {
+
+        //Secao1 alcoolica
+        List<DadosBebidaSecaoDto> dadosBebidaSecaoDtoList = new ArrayList<>();
+        var dadosBebidaSecaoDto1 = new DadosBebidaSecaoDto(1L, 200.0);
+        var dadosBebidaSecaoDto2 = new DadosBebidaSecaoDto(2L, 201.0);
+        dadosBebidaSecaoDtoList.add(dadosBebidaSecaoDto1);
+        dadosBebidaSecaoDtoList.add(dadosBebidaSecaoDto2);
+
+        var dadosInserirBebidaSecaoDto = new InserirBebidaSecaoDto("ENTRADA","ELTON",dadosBebidaSecaoDtoList);
+
+        when(secaoRepository.findById(anyLong())).thenReturn(Optional.ofNullable(secaoSemAlcool));
+
+        var exception = assertThrows(SecaoExcedeuLimiteDeCapacidadeException.class,
+                () -> secaoService.cadastrarBebidas(secaoAlcoolica.getSecaoId(),dadosInserirBebidaSecaoDto));
+        assertEquals("A capacidade máxima da seção foi excedida. Limite: 400,00. Total atual: 401,00" , exception.getMessage());
+
+    }
+
+
+
     @Test
     void validar_metodoCadastrarBebida_InserirBebidasNovasQueNaoEstejamNaSecao() {
         // Arrange
@@ -131,13 +190,13 @@ class SecaoServiceTest {
         var dadosInserirBebidaSecaoDto = new InserirBebidaSecaoDto("ENTRADA","ELTON",dadosBebidaSecaoDtoList);
 
 
-        when(secaoRepository.findById(anyLong())).thenReturn(Optional.ofNullable(secao1));
+        when(secaoRepository.findById(anyLong())).thenReturn(Optional.ofNullable(secaoAlcoolica));
         when(bebidaService.findById(1L)).thenReturn(bebida1);
         when(bebidaService.findById(2L)).thenReturn(bebida2);
         when(bebidaService.findById(3L)).thenReturn(bebida3);
         when(secaoRepository.save(any(SecaoEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var secaoEntity = secaoService.cadastrarBebidas(secao1.getSecaoId(),dadosInserirBebidaSecaoDto);
+        var secaoEntity = secaoService.cadastrarBebidas(secaoAlcoolica.getSecaoId(),dadosInserirBebidaSecaoDto);
 
 
         assertEquals(bebida1.getBebidaId(), secaoEntity.getBebidaSecaoEntities().get(0).getId().getBebida().getBebidaId(), "A bebida retornada deve ser Cachaça (ID 1)");
@@ -149,4 +208,9 @@ class SecaoServiceTest {
         verify(secaoRepository, times(1)).save(any(SecaoEntity.class));
 
     }
+
+
+
+
+
 }

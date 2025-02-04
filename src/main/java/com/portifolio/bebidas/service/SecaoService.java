@@ -78,13 +78,17 @@ public class SecaoService {
             //TODO melhorar o log logger.info("Valores a serem persistidos");
             return secaoRepository.save(secao);
 
-        } catch (InvalidDataAccessApiUsageException e) {
-            logger.error("Multiplas insercoes da mesma bebida", e);
+        } catch (InvalidDataAccessApiUsageException exception) {
+            logger.warn("Multiplas insercoes da mesma bebida", exception);
             throw new MultiplasInsercoesDaMesmaBebida("Não é possível inserir dois registros da mesma bebida em um mesmo pedido, faça mais de uma solicitação para inserir uma bebida duas vezes.");
 
-        } catch (RuntimeException e) {
-            logger.error("Erro não previsto:", e);
-            throw new RuntimeException("Erro não previsto ",e);
+        } catch (SecaoExcedeuLimiteDeCapacidadeException exception) {
+            logger.warn("Secao excedeu o limite de capacidade" ,exception);
+            throw exception ;
+        }
+        catch (RuntimeException exception) {
+            logger.error("Erro não previsto:", exception);
+            throw new RuntimeException("Erro não previsto ",exception);
         }
     }
 
@@ -95,8 +99,8 @@ public class SecaoService {
     }
 
     private void validarQuantidadePermitida(SecaoEntity secao, double quantidadeTotal) {
-        Double LIMITE_BEBIDA_ALCOOLICA = 500.0;
-        Double LIMITE_BEBIDA_SEM_ALCOOL = 400.0;
+        double LIMITE_BEBIDA_ALCOOLICA = 500.0;
+        double LIMITE_BEBIDA_SEM_ALCOOL = 400.0;
         double limite = secao.getTipoBebida().isTipo(TipoBebida.ALCOOLICA) ? LIMITE_BEBIDA_ALCOOLICA : LIMITE_BEBIDA_SEM_ALCOOL;
         if (quantidadeTotal > limite) {
             throw new SecaoExcedeuLimiteDeCapacidadeException(String.format(
@@ -167,7 +171,7 @@ public class SecaoService {
         }
     }
 
-    private double calcularQuantidadeTotalNaSecao(SecaoEntity secao) {
+    protected double calcularQuantidadeTotalNaSecao(SecaoEntity secao) {
         return secao.getBebidaSecaoEntities() == null ? 0.0 :
                 secao.getBebidaSecaoEntities().stream()
                         .mapToDouble(BebidaSecaoEntity::getQuantidadeBebida)
