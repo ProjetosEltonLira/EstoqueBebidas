@@ -1,0 +1,12 @@
+Para rodar o jacoco.
+
+1. Para projetos Maven
+Se o seu projeto usa Maven, você pode rodar o JaCoCo com o seguinte comando:
+mvn clean verify
+
+Isso irá gerar um relatório de cobertura de código em:
+target/site/jacoco/index.html
+
+Caso queira gerar o relatório manualmente, pode executar:
+mvn jacoco:report
+

@@ -17,6 +17,7 @@ import com.portifolio.bebidas.repository.SecaoRepository;
 import com.portifolio.bebidas.utils.JsonUtil;
 import jakarta.persistence.Transient;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -64,32 +65,45 @@ public class SecaoService {
     public SecaoEntity cadastrarBebidas(Long idSecao, InserirBebidaSecaoDto dto) {
 
         try {
-            logger.info("Inicio do cadastro da bebida na seção: {}", idSecao);
             logger.info("Request recebida: {}", JsonUtil.toJson(dto));
+            var secao = processarCadastro(idSecao, dto);
 
-            var secao = findById(idSecao);
-
-            double quantidadeTotal = calcularQuantidadeTotal(secao, dto);
-            validarQuantidadePermitida(secao, quantidadeTotal);
-
-            var bebidas = criarBebidasParaSecao(secao, dto);
-            secao.setBebidaSecaoEntities(bebidas);
-
-            //TODO melhorar o log logger.info("Valores a serem persistidos");
             return secaoRepository.save(secao);
 
         } catch (InvalidDataAccessApiUsageException exception) {
             logger.warn("Multiplas insercoes da mesma bebida", exception);
             throw new MultiplasInsercoesDaMesmaBebida("Não é possível inserir dois registros da mesma bebida em um mesmo pedido, faça mais de uma solicitação para inserir uma bebida duas vezes.");
 
-        } catch (SecaoExcedeuLimiteDeCapacidadeException exception) {
-            logger.warn("Secao excedeu o limite de capacidade" ,exception);
-            throw exception ;
-        }
-        catch (RuntimeException exception) {
+        }  catch (SecaoExcedeuLimiteDeCapacidadeException | TipoDeBebidaNaoPermitidoNaSecaoException | BebidaComValorNegativoNaSecaoException
+                  | BebidaComValorNegativoException | SecaoNaoEncontradaException | BebidaNaoEncontradaException exception) {
+            logger.warn("Erro de validação: {}", exception.getMessage(), exception);
+            throw exception;
+
+        }catch (RuntimeException exception) {
             logger.error("Erro não previsto:", exception);
             throw new RuntimeException("Erro não previsto ",exception);
         }
+    }
+
+    private SecaoEntity processarCadastro(Long idSecao, InserirBebidaSecaoDto dto) {
+        var secao = findById(idSecao);
+
+        validarNaoPermiteEntradaValoresNegativos(dto.bebidas());
+        double quantidadeTotal = calcularQuantidadeTotal(secao, dto);
+        validarQuantidadePermitida(secao, quantidadeTotal);
+
+        var bebidas = criarBebidasParaSecao(secao, dto);
+        secao.setBebidaSecaoEntities(bebidas);
+        return secao;
+    }
+
+    private void validarNaoPermiteEntradaValoresNegativos(List<DadosBebidaSecaoDto> bebidas) {
+        bebidas.stream()
+                .filter(bebida -> bebida.quantidade() < 0)
+                .findAny()
+                .ifPresent(b -> {
+                    throw new BebidaComValorNegativoException("Quantidade da bebida " + b.id() + " não pode ser negativa: "+ b.quantidade());
+                });
     }
 
     private double calcularQuantidadeTotal(SecaoEntity secao, InserirBebidaSecaoDto dto) {
