@@ -5,7 +5,6 @@ import com.portifolio.bebidas.entities.BebidaSecaoEntity;
 import com.portifolio.bebidas.entities.SecaoEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 import org.springframework.context.annotation.Configuration;
 

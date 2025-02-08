@@ -1,6 +1,5 @@
 package com.portifolio.bebidas.service;
 
-
 import com.portifolio.bebidas.enums.TipoBebida;
 import com.portifolio.bebidas.entities.TipoBebidaEntity;
 import com.portifolio.bebidas.exceptions.TipoDeBebidaNaoEncontradoException;
@@ -8,7 +7,6 @@ import com.portifolio.bebidas.repository.TipoBebidaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
 
 @Service
 public class TipoBebidaService {

@@ -1,6 +1,5 @@
 package com.portifolio.bebidas.service;
 
-
 import com.portifolio.bebidas.controller.dto.request.DadosBebidaSecaoDto;
 import com.portifolio.bebidas.controller.dto.request.InserirBebidaSecaoDto;
 import com.portifolio.bebidas.controller.dto.request.SecaoDto;
@@ -17,7 +16,6 @@ import com.portifolio.bebidas.repository.SecaoRepository;
 import com.portifolio.bebidas.utils.JsonUtil;
 import jakarta.persistence.Transient;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
