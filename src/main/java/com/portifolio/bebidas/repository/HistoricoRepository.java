@@ -1,6 +1,6 @@
 package com.portifolio.bebidas.repository;
 
-import com.portifolio.bebidas.entities.BebidaEntity;
+
 import com.portifolio.bebidas.entities.HistoricoEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
