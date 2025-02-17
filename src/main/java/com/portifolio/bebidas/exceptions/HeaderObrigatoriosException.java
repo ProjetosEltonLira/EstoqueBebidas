@@ -5,11 +5,11 @@ import org.springframework.http.ProblemDetail;
 
 import java.net.URI;
 
-public class SecaoAtingiuQuantidadeMaximaException extends BebidasException{
+public class HeaderObrigatoriosException extends BebidasException{
 
     private final String detail;
 
-    public SecaoAtingiuQuantidadeMaximaException(String detail) {
+    public HeaderObrigatoriosException(String detail) {
         super(detail);
         this.detail = detail;
     }
@@ -17,9 +17,9 @@ public class SecaoAtingiuQuantidadeMaximaException extends BebidasException{
     @Override
     public ProblemDetail toProblemDetail() {
         var pd = ProblemDetail.forStatus(HttpStatus.UNPROCESSABLE_ENTITY);
-        pd.setTitle("Secao invalida");
+        pd.setTitle("Headers invalidos invalidos");
         pd.setDetail(detail);
-        pd.setInstance(URI.create("/secao"));
+        pd.setInstance(URI.create("/*"));
         return pd;
     }
 }

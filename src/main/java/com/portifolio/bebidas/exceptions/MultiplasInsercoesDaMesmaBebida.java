@@ -16,7 +16,7 @@ public class MultiplasInsercoesDaMesmaBebida extends BebidasException{
 
     @Override
     public ProblemDetail toProblemDetail() {
-        var pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        var pd = ProblemDetail.forStatus(HttpStatus.UNPROCESSABLE_ENTITY);
         pd.setTitle("Bebida invalida");
         pd.setDetail(detail);
         pd.setInstance(URI.create("/secao"));
