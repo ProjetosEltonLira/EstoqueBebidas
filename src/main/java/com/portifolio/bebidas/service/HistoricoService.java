@@ -1,6 +1,7 @@
 package com.portifolio.bebidas.service;
 
 import com.portifolio.bebidas.entities.HistoricoEntity;
+import com.portifolio.bebidas.entities.mapper.HistoricoMapper;
 import com.portifolio.bebidas.repository.HistoricoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ public class HistoricoService {
 
     public HistoricoService(HistoricoRepository historicoRepository) {
         this.historicoRepository = historicoRepository;
+
     }
 
     public Page<HistoricoEntity> procurarHistoricoDaBebida(int page, int pageSize, String orderBy, Long bebidaId) {

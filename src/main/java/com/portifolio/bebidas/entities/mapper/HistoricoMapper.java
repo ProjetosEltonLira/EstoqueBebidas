@@ -1,45 +1,44 @@
 package com.portifolio.bebidas.entities.mapper;
 
+import com.portifolio.bebidas.controller.dto.response.ResponseBebidaHistoricoDTO;
+import com.portifolio.bebidas.controller.dto.response.ResponseHistoricoDTO;
+import com.portifolio.bebidas.entities.BebidaEntity;
 import com.portifolio.bebidas.entities.HistoricoEntity;
+import org.mapstruct.Context;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.domain.Page;
 
-//TODO configurar esse mapper
+import java.util.List;
+import java.util.UUID;
+
 @Configuration
+@Mapper(componentModel = "spring", uses = {BebidaMapper.class, SecaoMapper.class})
 public interface HistoricoMapper {
 
-    //@Mapping(target = "tipoBebida", source = "tipoBebida")
-    //ResponseHistoricoDTO toResponseHistoricoDto(Page<HistoricoEntity> historicoEntityPage)
+    @Mapping(target = "id", source = "historicoId", qualifiedByName = "uuidToString")
+    @Mapping(target = "bebida", source = ".", qualifiedByName = "mapBebidaWithVolume")
+    @Mapping(target = "secao", source = "bebidaSecao.id.secao")
+    ResponseHistoricoDTO toResponseDTO(HistoricoEntity entity);
 
+    List<ResponseHistoricoDTO> toListResponseDTO(List<HistoricoEntity> entities);
 
+    @Named("uuidToString")
+    static String uuidToString(UUID uuid) {
+        return (uuid != null) ? uuid.toString() : null;
+    }
 
+    @Named("mapBebidaWithVolume")
+    default ResponseBebidaHistoricoDTO mapBebidaWithVolume(HistoricoEntity historicoEntity) {
+        if (historicoEntity == null || historicoEntity.getBebidaSecao() == null || historicoEntity.getBebidaSecao().getId() == null) {
+            return null;
+        }
 
-//    @Mapping(target = "tipoBebida", source = "tipoBebida", qualifiedByName = "mapTipoBebida")
-//    BebidaEntity toBebidaEntity(DadosBebidaDto dadosBebidaDto);
-//
-//    @Mapping(target = "tipoBebida", source = "tipoBebida", qualifiedByName = "mapTipoBebida")
-//    List<BebidaEntity> toBebidaEntityList(List<DadosBebidaDto> dadosBebidaDtoList);
-//
-//    @Mapping(target = "id", source = "bebidaId")
-//    @Mapping(target = "tipoBebida", source = "tipoBebida", qualifiedByName = "mapDescricaoTipoBebida")
-//    ResponseFindAllBebidasDto toResponseFindAllBebidasDto(BebidaEntity bebidaEntity);
-//
-//    @Mapping(target = "id", source = "bebidaId")
-//    List<ResponseFindAllBebidasDto> toResponseFindAllBebidasDtoList(List<BebidaEntity> bebidaEntity);
-//
-//    @Named("mapTipoBebida")
-//    default TipoBebidaEntity mapTipoBebida(String descricaoTipoBebida) {
-//        Integer codigoTipoBebida = TipoBebida.getCodigoByDescricao(descricaoTipoBebida);
-//        return new TipoBebidaEntity(Long.valueOf(codigoTipoBebida), descricaoTipoBebida);
-//    }
-//
-//    @Mapping(target = "bebidaId", source = "id.bebida.bebidaId")
-//    @Mapping(target = "nomeBebida", source = "id.bebida.nomeBebida")
-//    @Mapping(target = "tipoBebida", source = "id.bebida.tipoBebida", qualifiedByName = "mapDescricaoTipoBebida")
-//    @Mapping(target = "quantidadeBebida", source = "quantidadeBebida")
-//    @Mapping(target = "dataCadastro", source = "dataCadastro")
-//    BebidasNaSecaoResponseDto toBebidasNaSecaoResponseDto(BebidaSecaoEntity bebidaSecaoEntity);
-//
-//    List<BebidasNaSecaoResponseDto> toBebidasNaSecaoResponseDtoList(List<BebidaSecaoEntity> bebidaSecaoEntities);
+        BebidaEntity bebida = historicoEntity.getBebidaSecao().getId().getBebida();
+        Double volumeBebida = historicoEntity.getVolumeBebida();
 
+        return BebidaMapper.INSTANCE.toResponseBebidaHistoricoDTO(bebida, volumeBebida);
+    }
 }
+

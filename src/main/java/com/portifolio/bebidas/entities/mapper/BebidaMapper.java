@@ -1,6 +1,7 @@
 package com.portifolio.bebidas.entities.mapper;
 
 
+import com.portifolio.bebidas.controller.dto.response.ResponseBebidaHistoricoDTO;
 import com.portifolio.bebidas.enums.TipoBebida;
 import com.portifolio.bebidas.controller.dto.request.DadosBebidaDto;
 import com.portifolio.bebidas.controller.dto.response.BebidasNaSecaoResponseDto;
@@ -9,9 +10,11 @@ import com.portifolio.bebidas.entities.BebidaEntity;
 import com.portifolio.bebidas.entities.BebidaSecaoEntity;
 import com.portifolio.bebidas.entities.TipoBebidaEntity;
 
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.mapstruct.factory.Mappers;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
@@ -20,11 +23,10 @@ import java.util.List;
 @Mapper(componentModel = "spring",uses = {TipoBebidaMapper.class})
 public interface BebidaMapper {
 
-    @Mapping(target = "tipoBebida", source = "tipoBebida", qualifiedByName = "mapTipoBebida")
-    BebidaEntity toBebidaEntity(DadosBebidaDto dadosBebidaDto);
+    BebidaMapper INSTANCE = Mappers.getMapper(BebidaMapper.class);
 
     @Mapping(target = "tipoBebida", source = "tipoBebida", qualifiedByName = "mapTipoBebida")
-    List<BebidaEntity> toBebidaEntityList(List<DadosBebidaDto> dadosBebidaDtoList);
+    BebidaEntity toBebidaEntity(DadosBebidaDto dadosBebidaDto);
 
     @Mapping(target = "id", source = "bebidaId")
     @Mapping(target = "tipoBebida", source = "tipoBebida", qualifiedByName = "mapDescricaoTipoBebida")
@@ -48,4 +50,19 @@ public interface BebidaMapper {
 
     List<BebidasNaSecaoResponseDto> toBebidasNaSecaoResponseDtoList(List<BebidaSecaoEntity> bebidaSecaoEntities);
 
+
+    @Mapping(target = "id", source = "bebidaId")
+    @Mapping(target = "nome", source = "nomeBebida")
+    ResponseBebidaHistoricoDTO toResponseBebidaHistoricoDTO(BebidaEntity bebidaEntity);
+
+    default ResponseBebidaHistoricoDTO toResponseBebidaHistoricoDTO(BebidaEntity bebidaEntity, Double volumeBebida) {
+        if (bebidaEntity == null) {
+            return null;
+        }
+        return new ResponseBebidaHistoricoDTO(
+                bebidaEntity.getBebidaId(),
+                bebidaEntity.getNomeBebida(),
+                volumeBebida
+        );
+    }
 }

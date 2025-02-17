@@ -1,6 +1,9 @@
 package com.portifolio.bebidas.entities.mapper;
 
+import com.portifolio.bebidas.controller.dto.response.ResponseBebidaHistoricoDTO;
 import com.portifolio.bebidas.controller.dto.response.ResponseSecaoDto;
+import com.portifolio.bebidas.controller.dto.response.ResponseSecaoHistoricoDTO;
+import com.portifolio.bebidas.entities.BebidaEntity;
 import com.portifolio.bebidas.entities.BebidaSecaoEntity;
 import com.portifolio.bebidas.entities.SecaoEntity;
 import org.mapstruct.Mapper;
@@ -16,8 +19,6 @@ public interface SecaoMapper {
 
     SecaoMapper INSTANCE = Mappers.getMapper(SecaoMapper.class);
 
-    @Mapping(target = "secaoId", source = "secaoId")
-    @Mapping(target = "nomeSecao", source = "nomeSecao")
     @Mapping(target = "tipoSecao", source = "tipoBebida.descricao") // Mapear a descrição do tipo de bebida
     @Mapping(target = "quantidadeTotal", expression = "java(calcularQuantidadeTotal(entity.getBebidaSecaoEntities()))") // Calcular quantidade total
     @Mapping(target = "bebidas", source = "bebidaSecaoEntities") // Lista de bebidas
@@ -31,12 +32,9 @@ public interface SecaoMapper {
                 .mapToDouble(BebidaSecaoEntity::getQuantidadeBebida)
                 .sum();
     }
-//    @Named("mapQuantidadeTotalBebidasNaSecao")
-//    default double mapQuantidadeTotalBebidasNaSecao(List<BebidaSecaoEntity> bebidaSecao) {
-//        return bebidaSecao.stream()
-//                .map(BebidaSecaoEntity::getQuantidadeBebida)
-//                .filter(q -> q != null && q > 0)
-//                .mapToDouble(Double::doubleValue)
-//                .sum();
-//    }
+
+    @Mapping(target = "id", source = "secaoId")
+    @Mapping(target = "nome", source = "nomeSecao")
+    ResponseSecaoHistoricoDTO toResponseSecaoHistoricoDTO(SecaoEntity secaoEntity);
+
 }

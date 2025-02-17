@@ -54,7 +54,6 @@ public class BebidaController {
                             pageResponse.getSize(),
                             pageResponse.getTotalElements(),
                             pageResponse.getTotalPages())
-
             ));
     }
 
@@ -66,12 +65,12 @@ public class BebidaController {
             @RequestParam(name = "pageSize", defaultValue = "10") int pageSize,
             @RequestParam(name = "orderBy", defaultValue = "desc") String orderBy){
 
-        var pageResponse = bebidaService.procurarHistoricoDaBebida(page,pageSize,orderBy,bebidaId);
+        Page<HistoricoEntity> pageResponse = bebidaService.procurarHistoricoDaBebida(page,pageSize,orderBy,bebidaId);
 
         return ResponseEntity.ok(
                 new ApiResponseDto(
-                        pageResponse.getContent(),
-                       //historicoMapper., //TODO ajustar aqui
+                        //pageResponse.getContent(),
+                        historicoMapper.toListResponseDTO(pageResponse.getContent()),
                         new PaginationResponseDTO(
                                 pageResponse.getNumber(),
                                 pageResponse.getSize(),

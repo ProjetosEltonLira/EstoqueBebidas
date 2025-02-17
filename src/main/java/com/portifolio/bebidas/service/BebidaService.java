@@ -1,10 +1,9 @@
 package com.portifolio.bebidas.service;
 
-import com.portifolio.bebidas.entities.HistoricoEntity;
 import com.portifolio.bebidas.controller.dto.request.InserirBebidaDto;
 import com.portifolio.bebidas.entities.BebidaEntity;
+import com.portifolio.bebidas.entities.HistoricoEntity;
 import com.portifolio.bebidas.exceptions.BebidaNaoEncontradaException;
-import com.portifolio.bebidas.exceptions.TipoDeBebidaNaoEncontradoException;
 import com.portifolio.bebidas.repository.BebidaRepository;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -55,6 +54,6 @@ public class BebidaService {
 
     public Page<HistoricoEntity> procurarHistoricoDaBebida(int page, int pageSize, String orderBy, Long bebidaId) {
 
-        return historicoService.procurarHistoricoDaBebida(page, pageSize, orderBy, bebidaId);
+          return historicoService.procurarHistoricoDaBebida(page, pageSize, orderBy, bebidaId);
     }
 }
