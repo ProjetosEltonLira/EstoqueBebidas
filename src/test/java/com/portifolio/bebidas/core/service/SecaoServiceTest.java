@@ -11,14 +11,15 @@ import com.portifolio.bebidas.entrypoint.controller.dto.request.InserirBebidaSec
 import com.portifolio.bebidas.entrypoint.controller.dto.request.SecaoDto;
 import com.portifolio.bebidas.entrypoint.controller.dto.response.BebidasNaSecaoResponseDto;
 import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseSecaoDto;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -214,12 +215,28 @@ class SecaoServiceTest {
     class cadastrarBebidaExceptions {
 
         @Test
+        @DisplayName("Validar exception seção não encontrada")
+        void testeFindById_DeveLançarSecaoNaoEncontradaException_QuandoIdNaoForEncontrado() {
+            // Arrange
+            Long idSecao = 1L;
+            when(secaoRepository.findById(idSecao)).thenReturn(Optional.empty());
+
+            // Act & Assert
+            SecaoNaoEncontradaException exception = assertThrows(SecaoNaoEncontradaException.class,
+                    () -> secaoService.findById(idSecao));
+
+            assertEquals("Seção com o Id " + idSecao + " não encontrada", exception.getMessage());
+            verify(secaoRepository, times(1)).findById(idSecao);
+        }
+
+
+        @Test
         @DisplayName("Validar exception para tratar inserção excessiva de bebida na secao alcoolica 500 litros")
         void DeveLancarUmaExcecaoQuandoOLimiteDeBebidaAlcoolicaNaSecaoForAtingida() {
 
             //Arrange
             List<DadosBebidaSecaoDto> dadosBebidaSecaoDtoList = List.of(new DadosBebidaSecaoDto(1L, 100.0),
-                                                                        new DadosBebidaSecaoDto(2L, 101.0));
+                    new DadosBebidaSecaoDto(2L, 101.0));
 
             var dadosInserirBebidaSecaoDto = new InserirBebidaSecaoDto("ENTRADA", "ELTON", dadosBebidaSecaoDtoList);
 
@@ -240,7 +257,7 @@ class SecaoServiceTest {
             //Arrange
             var dadosInserirBebidaSecaoDto = new InserirBebidaSecaoDto("ENTRADA", "ELTON",
                     new ArrayList<>(List.of(new DadosBebidaSecaoDto(1L, 200.0),
-                                            new DadosBebidaSecaoDto(2L, 201.0))));
+                            new DadosBebidaSecaoDto(2L, 201.0))));
 
             when(secaoRepository.findById(anyLong())).thenReturn(Optional.ofNullable(secaoSemAlcool));
 
@@ -277,8 +294,8 @@ class SecaoServiceTest {
 
             //Arrange
             var dadosInserirBebidaSecaoDto = new InserirBebidaSecaoDto("SAIDA", "ELTON",
-                     new ArrayList<>(List.of(new DadosBebidaSecaoDto(1L, 100.0),
-                                             new DadosBebidaSecaoDto(2L, 110.0))));
+                    new ArrayList<>(List.of(new DadosBebidaSecaoDto(1L, 100.0),
+                            new DadosBebidaSecaoDto(2L, 110.0))));
 
             when(secaoRepository.findById(1L)).thenReturn(Optional.ofNullable(secaoAlcoolica));
             when(bebidaService.findById(1L)).thenReturn(bebida1);
@@ -315,7 +332,7 @@ class SecaoServiceTest {
 
     @Test
     @DisplayName("Testar o método pesquisar por id da secao")
-    //@Disabled("Em desenvolvimento - apresentando falha no teste")
+        //@Disabled("Em desenvolvimento - apresentando falha no teste")
     void procurarPorSecao() {
 
         var bebidas = List.of(new BebidasNaSecaoResponseDto(1L, "teste", "ALCOOLICA", 50.0, LocalDateTime.now()));
@@ -326,11 +343,31 @@ class SecaoServiceTest {
 
         var response = secaoService.procurarSecaoPorId(secaoAlcoolica.getSecaoId());
 
-        assertEquals(1L,response.secaoId());
-        assertEquals("Teste Secao",response.nomeSecao());
+        assertEquals(1L, response.secaoId());
+        assertEquals("Teste Secao", response.nomeSecao());
 
     }
 
+
+    @Test
+    @DisplayName("Lancar excecao InvalidDataAccessApiUsageException no cadastro de bebida ")
+    void deveLancarUmErroInvalidDataAccessApiUsageException () {
+
+        List<DadosBebidaSecaoDto> dadosBebidaSecaoDtoList = List.of(new DadosBebidaSecaoDto(1L, 20.0));
+
+        var dadosInserirBebidaSecaoDto = new InserirBebidaSecaoDto("ENTRADA", "ELTON", dadosBebidaSecaoDtoList);
+
+        when(secaoRepository.findById(1L)).thenReturn(Optional.ofNullable(secaoAlcoolica));
+        when(bebidaService.findById(any())).thenReturn(bebida1);
+
+        doThrow(new InvalidDataAccessApiUsageException(
+                "Não é possível inserir dois registros da mesma bebida em um mesmo pedido, faça mais de uma solicitação " +
+                        "para inserir uma bebida duas vezes.")).when(secaoRepository).save(any());
+
+        assertThrows(MultiplasInsercoesDaMesmaBebida.class,
+                () -> secaoService.cadastrarBebidas(secaoAlcoolica.getSecaoId(), dadosInserirBebidaSecaoDto));
+
+    }
 
     @Test
     @DisplayName("Lancar excecao de erro genérico no cadastro de bebida ")

@@ -12,7 +12,7 @@
 	<artifactId>bebidas</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>bebidas</name>
-	<description>projeto de armazem de bebidas.</description>
+	<description>Projeto de armazem de bebidas</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -27,17 +27,41 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>21</java.version>
+		<java.version>23</java.version>
 	</properties>
 	<dependencies>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>5.11.4</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-junit-jupiter</artifactId>
+			<version>5.15.2</version>
+			<scope>test</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
@@ -50,15 +74,10 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>org.junit.vintage</groupId>
-					<artifactId>junit-vintage-engine</artifactId>
-				</exclusion>
-			</exclusions>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.30</version>
+			<optional>true</optional>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.mapstruct/mapstruct -->
@@ -67,6 +86,7 @@
 			<artifactId>mapstruct</artifactId>
 			<version>1.6.3</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.mapstruct</groupId>
 			<artifactId>mapstruct-processor</artifactId>
@@ -74,37 +94,24 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>1.18.30</version>
-			<scope>provided</scope>
-		</dependency>
-
-		<!--https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind  -->
+		<!--https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.16.1</version>
-		</dependency>
-
+			<version>2.18.2</version>
+		</dependency>-->
 	</dependencies>
 
 	<build>
 		<plugins>
-
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
 				<configuration>
-					<encoding>UTF-8</encoding>
 					<source>21</source>
 					<target>21</target>
+					<encoding>UTF-8</encoding>
 					<annotationProcessorPaths>
 						<path>
 							<groupId>org.projectlombok</groupId>
@@ -114,30 +121,46 @@
 						<path>
 							<groupId>org.mapstruct</groupId>
 							<artifactId>mapstruct-processor</artifactId>
-							<version>1.6.3</version>
+							<version>1.5.5.Final</version>
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
 			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.12</version>
+				<version>0.8.12</version> <!-- Verifique a versão mais recente no site oficial -->
 				<executions>
-					<!-- Execução para gerar o arquivo de cobertura após os testes -->
 					<execution>
 						<id>prepare-agent</id>
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
 					</execution>
-					<!-- Execução para gerar o relatório em HTML -->
 					<execution>
 						<id>report</id>
-						<phase>prepare-package</phase>
+						<phase>verify</phase>
 						<goals>
 							<goal>report</goal>
 						</goals>
+						<configuration>
+							<excludes>
+								<exclude>com/portifolio/bebidas/entrypoint/controller/dto/response/**</exclude>
+								<exclude>com/portifolio/bebidas/core/entities/**</exclude>
+							</excludes>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -158,14 +181,11 @@
 					<mutators>
 						<mutator>ALL</mutator>
 					</mutators>
-					<excludedClasses>
-						<param>com.portifolio.bebidas.*</param>
-					</excludedClasses>
 					<targetClasses>
-						<param>com.portifolio.bebidas.*</param>
+						<param>com.portifolio.bebidas.core.service.*</param>
 					</targetClasses>
 					<targetTests>
-						<param>com.portifolio.bebidas.*Test</param>
+						<param>com.portifolio.bebidas.core.service.*Test</param>
 					</targetTests>
 					<outputFormats>
 						<outputFormat>HTML</outputFormat>
