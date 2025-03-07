@@ -5,11 +5,11 @@ import org.springframework.http.ProblemDetail;
 
 import java.net.URI;
 
-public class BebidaComValorNegativoException extends BebidasException{
+public class BebidaComValorNegativoOuZeroException extends BebidasException{
 
     private final String detail;
 
-    public BebidaComValorNegativoException(String detail) {
+    public BebidaComValorNegativoOuZeroException(String detail) {
         super(detail);
         this.detail = detail;
     }

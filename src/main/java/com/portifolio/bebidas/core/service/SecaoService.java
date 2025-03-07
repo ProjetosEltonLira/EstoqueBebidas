@@ -75,7 +75,7 @@ public class SecaoService {
         }  catch (SecaoExcedeuLimiteDeCapacidadeException
                   | TipoDeBebidaNaoPermitidoNaSecaoException
                   | BebidaComValorNegativoNaSecaoException
-                  | BebidaComValorNegativoException
+                  | BebidaComValorNegativoOuZeroException
                   | SecaoNaoEncontradaException
                   | BebidaNaoEncontradaException exception) {
             logger.warn("Erro de validação: {}", exception.getMessage(), exception);
@@ -83,14 +83,15 @@ public class SecaoService {
 
         }catch (RuntimeException exception) {
             logger.error("Erro não previsto:", exception);
-            throw new RuntimeException("Erro não previsto ",exception);
+            throw new RuntimeException("Erro não previsto", exception);
         }
     }
 
     private SecaoEntity processarCadastro(Long idSecao, InserirBebidaSecaoDto dto) {
+
         var secao = findById(idSecao);
 
-        validarNaoPermiteEntradaValoresNegativos(dto.bebidas());
+        validarNaoPermiteEntradaValoresNegativosOuZero(dto.bebidas());
         double quantidadeTotal = calcularQuantidadeTotal(secao, dto);
         validarQuantidadePermitida(secao, quantidadeTotal);
 
@@ -99,19 +100,18 @@ public class SecaoService {
         return secao;
     }
 
-    private void validarNaoPermiteEntradaValoresNegativos(List<DadosBebidaSecaoDto> bebidas) {
+    private void validarNaoPermiteEntradaValoresNegativosOuZero(List<DadosBebidaSecaoDto> bebidas) {
         bebidas.stream()
-                .filter(bebida -> bebida.quantidade() < 0)
+                .filter(bebida -> bebida.quantidade() <= 0)
                 .findAny()
                 .ifPresent(b -> {
-                    throw new BebidaComValorNegativoException("Quantidade da bebida " + b.id() + " não pode ser negativa: "+ b.quantidade());
+                    throw new BebidaComValorNegativoOuZeroException("Quantidade da bebida " + b.id() + " não pode ser negativa: "+ b.quantidade());
                 });
     }
 
     private double calcularQuantidadeTotal(SecaoEntity secao, InserirBebidaSecaoDto dto) {
-        var quantidadeExistente = calcularQuantidadeTotalNaSecao(secao);
-        var quantidadeASerInserida = calcularQuantidadeASerInserida(dto.bebidas());
-        return quantidadeExistente + (TipoRegistro.ENTRADA.getDescricao().equals(dto.tipoRegistro()) ? quantidadeASerInserida : 0);
+        return TipoRegistro.ENTRADA.getDescricao().equals(dto.tipoRegistro())
+                ? calcularQuantidadeTotalNaSecao(secao) + calcularQuantidadeASerInserida(dto.bebidas()) : calcularQuantidadeASerInserida(dto.bebidas());
     }
 
     private void validarQuantidadePermitida(SecaoEntity secao, double quantidadeTotal) {
@@ -187,7 +187,7 @@ public class SecaoService {
         }
     }
 
-    protected double calcularQuantidadeTotalNaSecao(SecaoEntity secao) {
+    private double calcularQuantidadeTotalNaSecao(SecaoEntity secao) {
         return secao.getBebidaSecaoEntities() == null ? 0.0 :
                 secao.getBebidaSecaoEntities().stream()
                         .mapToDouble(BebidaSecaoEntity::getQuantidadeBebida)

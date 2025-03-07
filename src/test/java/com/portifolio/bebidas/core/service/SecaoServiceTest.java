@@ -16,6 +16,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -28,6 +32,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.spy;
 
 @ExtendWith(MockitoExtension.class)
 class SecaoServiceTest {
@@ -50,6 +55,8 @@ class SecaoServiceTest {
     @Mock
     private BebidaMapper bebidaMapper;
 
+    @Captor
+    private ArgumentCaptor<SecaoEntity> SecaoEntityAc;
 
     TipoBebidaEntity tipoBebidaAlcoolica;
     TipoBebidaEntity tipoBebidaSemAlcool;
@@ -95,13 +102,6 @@ class SecaoServiceTest {
 
     }
 
-//    @Disabled
-//    @ParameterizedTest
-//    @ValueSource(doubles = {0.0, 1.5, 2.5})
-//    void testaValoresDeQuantidade(double quantidade) {
-//        // Lógica do teste usando o valor de "quantidade"
-//    }
-
 
     @Nested
     class criarSecao {
@@ -128,16 +128,19 @@ class SecaoServiceTest {
 
             verify(secaoRepository, times(1)).save(any(SecaoEntity.class));
         }
+    }
 
 
-        @Test
+    @Nested
+    class criarSecaoExceptions {
+
+        @ParameterizedTest
+        @ValueSource(doubles = {5L, 6L})
         @DisplayName("Deve lançar uma exceção de limite de secoes atingidas")
-        void DeveLancarExcecaoQuandoLimiteDeSecoesForAtingido() {
-
+        void DeveLancarExcecaoQuandoLimiteDeSecoesForAtingido(double quantidadeSecoes) {
             // Arrange
-            DadosSecaoDto dadosSecaoDto = new DadosSecaoDto("Secao 1", "ALCOOLICA");
-            SecaoDto secaoDto = new SecaoDto(dadosSecaoDto);
-            when(secaoRepository.quantidadeSecoesAtivas()).thenReturn(6L);
+            SecaoDto secaoDto = new SecaoDto(new DadosSecaoDto("Secao 1", "ALCOOLICA"));
+            when(secaoRepository.quantidadeSecoesAtivas()).thenReturn((long) quantidadeSecoes);
 
             // Act & Assert
             var exception = assertThrows(SecaoAtingiuQuantidadeMaximaException.class, () -> secaoService.criarSecao(secaoDto));
@@ -229,64 +232,76 @@ class SecaoServiceTest {
             verify(secaoRepository, times(1)).findById(idSecao);
         }
 
+        @Nested
+        class SecaoExcedeuLimiteDeCapacidade {
+            @Test
+            @DisplayName("Validar exception para tratar inserção excessiva de bebida na secao alcoolica 500 litros")
+            void DeveLancarUmaExcecaoQuandoOLimiteDeBebidaAlcoolicaNaSecaoForAtingida() {
 
-        @Test
-        @DisplayName("Validar exception para tratar inserção excessiva de bebida na secao alcoolica 500 litros")
-        void DeveLancarUmaExcecaoQuandoOLimiteDeBebidaAlcoolicaNaSecaoForAtingida() {
+                //Arrange
+                List<DadosBebidaSecaoDto> dadosBebidaSecaoDtoList = List.of(new DadosBebidaSecaoDto(1L, 100.0),
+                        new DadosBebidaSecaoDto(2L, 101.0));
 
-            //Arrange
-            List<DadosBebidaSecaoDto> dadosBebidaSecaoDtoList = List.of(new DadosBebidaSecaoDto(1L, 100.0),
-                    new DadosBebidaSecaoDto(2L, 101.0));
+                var dadosInserirBebidaSecaoDto = new InserirBebidaSecaoDto("ENTRADA", "ELTON", dadosBebidaSecaoDtoList);
 
+                when(secaoRepository.findById(anyLong())).thenReturn(Optional.ofNullable(secaoAlcoolica));
+
+                //Act & Assert
+                var exception = assertThrows(SecaoExcedeuLimiteDeCapacidadeException.class,
+                        () -> secaoService.cadastrarBebidas(secaoAlcoolica.getSecaoId(), dadosInserirBebidaSecaoDto));
+
+                assertEquals("A capacidade máxima da seção foi excedida. Limite: 500,00. Total atual: 501,00", exception.getMessage());
+
+            }
+
+            @Test
+            @DisplayName("Validar exception para tratar inserção excessiva de bebida na secao sem alcool 400 litros")
+            void DeveLancarUmaExcecaoQuandoOLimiteDeBebidaSemAlcoolicaNaSecaoForAtingida() {
+
+                //Arrange
+                var dadosInserirBebidaSecaoDto = new InserirBebidaSecaoDto("ENTRADA", "ELTON",
+                        new ArrayList<>(List.of(new DadosBebidaSecaoDto(1L, 200.0),
+                                new DadosBebidaSecaoDto(2L, 201.0))));
+
+                when(secaoRepository.findById(anyLong())).thenReturn(Optional.ofNullable(secaoSemAlcool));
+
+                //Act & Assert
+                var exception = assertThrows(SecaoExcedeuLimiteDeCapacidadeException.class,
+                        () -> secaoService.cadastrarBebidas(secaoAlcoolica.getSecaoId(), dadosInserirBebidaSecaoDto));
+                assertEquals("A capacidade máxima da seção foi excedida. Limite: 400,00. Total atual: 401,00", exception.getMessage());
+            }
+
+
+
+
+
+        }
+
+        @ParameterizedTest
+        @ValueSource(doubles = {0.0, -20.0, 1.0})
+        @DisplayName("Validar exception para impedir de entrar bebidas com quantidades negativas ou zero")
+        void DeveLancarExceptionParaBebidaComValorNegativoOuZeroException(Double quantidadeBebida) {
+
+            // Arrange
+            List<DadosBebidaSecaoDto> dadosBebidaSecaoDtoList = List.of(new DadosBebidaSecaoDto(1L, quantidadeBebida));
             var dadosInserirBebidaSecaoDto = new InserirBebidaSecaoDto("ENTRADA", "ELTON", dadosBebidaSecaoDtoList);
 
             when(secaoRepository.findById(anyLong())).thenReturn(Optional.ofNullable(secaoAlcoolica));
 
-            //Act & Assert
-            var exception = assertThrows(SecaoExcedeuLimiteDeCapacidadeException.class,
-                    () -> secaoService.cadastrarBebidas(secaoAlcoolica.getSecaoId(), dadosInserirBebidaSecaoDto));
+            if (quantidadeBebida <= 0.0) {
 
-            assertEquals("A capacidade máxima da seção foi excedida. Limite: 500,00. Total atual: 501,00", exception.getMessage());
+                // Act & Assert
+                var exception = assertThrows(BebidaComValorNegativoOuZeroException.class,
+                        () -> secaoService.cadastrarBebidas(secaoAlcoolica.getSecaoId(), dadosInserirBebidaSecaoDto));
 
+                assertEquals("Quantidade da bebida 1 não pode ser negativa: " + quantidadeBebida, exception.getMessage());
+            } else {
+
+                when(bebidaService.findById(1L)).thenReturn(bebida1);
+                // Act & Assert
+                assertDoesNotThrow(() -> secaoService.cadastrarBebidas(secaoAlcoolica.getSecaoId(), dadosInserirBebidaSecaoDto));
+            }
         }
-
-        @Test
-        @DisplayName("Validar exception para tratar inserção excessiva de bebida na secao sem alcool 400 litros")
-        void DeveLancarUmaExcecaoQuandoOLimiteDeBebidaSemAlcoolicaNaSecaoForAtingida() {
-
-            //Arrange
-            var dadosInserirBebidaSecaoDto = new InserirBebidaSecaoDto("ENTRADA", "ELTON",
-                    new ArrayList<>(List.of(new DadosBebidaSecaoDto(1L, 200.0),
-                            new DadosBebidaSecaoDto(2L, 201.0))));
-
-            when(secaoRepository.findById(anyLong())).thenReturn(Optional.ofNullable(secaoSemAlcool));
-
-            //Act & Assert
-            var exception = assertThrows(SecaoExcedeuLimiteDeCapacidadeException.class,
-                    () -> secaoService.cadastrarBebidas(secaoAlcoolica.getSecaoId(), dadosInserirBebidaSecaoDto));
-            assertEquals("A capacidade máxima da seção foi excedida. Limite: 400,00. Total atual: 401,00", exception.getMessage());
-        }
-
-
-        @Test
-        @DisplayName("Validar exception para impedir de entrar bebidas com quantidades negativas ")
-        void DeveLancarExceptionParaBebidaComValorNegativoException() {
-
-            //Arrange
-            List<DadosBebidaSecaoDto> dadosBebidaSecaoDtoList =
-                    List.of(new DadosBebidaSecaoDto(1L, -20.0));
-
-            var dadosInserirBebidaSecaoDto = new InserirBebidaSecaoDto("ENTRADA", "ELTON", dadosBebidaSecaoDtoList);
-
-            when(secaoRepository.findById(anyLong())).thenReturn(Optional.ofNullable(secaoAlcoolica));
-
-            //Act & Assert
-            var exception = assertThrows(BebidaComValorNegativoException.class,
-                    () -> secaoService.cadastrarBebidas(secaoAlcoolica.getSecaoId(), dadosInserirBebidaSecaoDto));
-
-            assertEquals("Quantidade da bebida 1 não pode ser negativa: -20.0", exception.getMessage());
-        }
-
 
         @Test
         @DisplayName("Validar exception para impossibilitar retirar quantidade de bebida inexistentes da secao.")
@@ -305,6 +320,31 @@ class SecaoServiceTest {
                     () -> secaoService.cadastrarBebidas(secaoAlcoolica.getSecaoId(), dadosInserirBebidaSecaoDto));
 
             assertEquals("Não foi possível retirar 100,00 da bebida 1, pois somente há 90,00 em estoque.", exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("Validar cálculo da quantidade total para saída de bebida")
+        void deveCalcularQuantidadeTotalParaSaida() {
+            // Arrange
+            SecaoEntity secaoAlcoolica2 = new SecaoEntity(3L, "teste", tipoBebidaAlcoolica, null);
+
+            var bebidaSecaoId1=  new BebidaSecaoEntity(new BebidaSecaoId(bebida1, secaoAlcoolica2), 250.0);
+            var bebidaSecaoId2 = new BebidaSecaoEntity(new BebidaSecaoId(bebida2, secaoAlcoolica2), 250.0);
+
+            List<BebidaSecaoEntity> listaBebidasNaSecao = List.of(bebidaSecaoId1, bebidaSecaoId2);
+            secaoAlcoolica2.setBebidaSecaoEntities(listaBebidasNaSecao);
+
+            List<DadosBebidaSecaoDto> bebidas = List.of(new DadosBebidaSecaoDto(1L, 50.0));
+            var dto = new InserirBebidaSecaoDto("SAIDA", "ELTON", bebidas);
+
+            when(secaoRepository.findById(1L)).thenReturn(Optional.of(secaoAlcoolica2));
+            when(bebidaService.findById(1L)).thenReturn(new BebidaEntity(1L, "Cerveja", tipoBebidaAlcoolica));
+
+            // Act
+            secaoService.cadastrarBebidas(1L, dto);
+
+            // Assert
+            verify(secaoRepository, times(1)).save(any(SecaoEntity.class)); // Garante que a seção foi salva
         }
 
         @Test
@@ -351,7 +391,7 @@ class SecaoServiceTest {
 
     @Test
     @DisplayName("Lancar excecao InvalidDataAccessApiUsageException no cadastro de bebida ")
-    void deveLancarUmErroInvalidDataAccessApiUsageException () {
+    void deveLancarUmErroInvalidDataAccessApiUsageException() {
 
         List<DadosBebidaSecaoDto> dadosBebidaSecaoDtoList = List.of(new DadosBebidaSecaoDto(1L, 20.0));
 
@@ -378,10 +418,13 @@ class SecaoServiceTest {
         var dadosInserirBebidaSecaoDto = new InserirBebidaSecaoDto("ENTRADA", "ELTON", dadosBebidaSecaoDtoList);
 
         // Simula a exceção ao tentar salvar a entidade
-        doThrow(new RuntimeException("Erro genérico")).when(secaoRepository).findById(any());
+        doThrow(new RuntimeException("Erro não previsto")).when(secaoRepository).findById(any());
 
-        assertThrows(RuntimeException.class,
+        // Act & Assert
+        var exception = assertThrows(RuntimeException.class,
                 () -> secaoService.cadastrarBebidas(secaoAlcoolica.getSecaoId(), dadosInserirBebidaSecaoDto));
+
+        assertEquals("Erro não previsto", exception.getMessage(), "A mensagem da exceção deve ser 'Erro não previsto '");
 
     }
 
