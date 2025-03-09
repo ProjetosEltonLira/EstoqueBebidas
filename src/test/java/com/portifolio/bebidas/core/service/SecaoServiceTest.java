@@ -8,8 +8,8 @@ import com.portifolio.bebidas.core.repository.SecaoRepository;
 import com.portifolio.bebidas.entrypoint.controller.dto.request.DadosBebidaSecaoDto;
 import com.portifolio.bebidas.entrypoint.controller.dto.request.DadosSecaoDto;
 import com.portifolio.bebidas.entrypoint.controller.dto.request.InserirBebidaSecaoDto;
-import com.portifolio.bebidas.entrypoint.controller.dto.request.SecaoDto;
-import com.portifolio.bebidas.entrypoint.controller.dto.response.BebidasNaSecaoResponseDto;
+import com.portifolio.bebidas.entrypoint.controller.dto.request.SecaoDTO;
+import com.portifolio.bebidas.entrypoint.controller.dto.response.BebidasNaSecaoResponseDTO;
 import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseSecaoDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -112,7 +112,7 @@ class SecaoServiceTest {
 
             // Arrange
             DadosSecaoDto dadosSecaoDto = new DadosSecaoDto("Secao Teste", "ALCOOLICA");
-            SecaoDto secaoDto = new SecaoDto(dadosSecaoDto);
+            SecaoDTO secaoDto = new SecaoDTO(dadosSecaoDto);
 
             when(secaoRepository.quantidadeSecoesAtivas()).thenReturn(3L);
             when(tipoBebidaService.getTipoBebida(dadosSecaoDto.tipoBebida())).thenReturn(tipoBebidaAlcoolica);
@@ -139,7 +139,7 @@ class SecaoServiceTest {
         @DisplayName("Deve lançar uma exceção de limite de secoes atingidas")
         void DeveLancarExcecaoQuandoLimiteDeSecoesForAtingido(double quantidadeSecoes) {
             // Arrange
-            SecaoDto secaoDto = new SecaoDto(new DadosSecaoDto("Secao 1", "ALCOOLICA"));
+            SecaoDTO secaoDto = new SecaoDTO(new DadosSecaoDto("Secao 1", "ALCOOLICA"));
             when(secaoRepository.quantidadeSecoesAtivas()).thenReturn((long) quantidadeSecoes);
 
             // Act & Assert
@@ -375,7 +375,7 @@ class SecaoServiceTest {
         //@Disabled("Em desenvolvimento - apresentando falha no teste")
     void procurarPorSecao() {
 
-        var bebidas = List.of(new BebidasNaSecaoResponseDto(1L, "teste", "ALCOOLICA", 50.0, LocalDateTime.now()));
+        var bebidas = List.of(new BebidasNaSecaoResponseDTO(1L, "teste", "ALCOOLICA", 50.0, LocalDateTime.now()));
         ResponseSecaoDTO responseSecaoDto = new ResponseSecaoDTO(1L, "Teste Secao", "ALCOOLICA", 300.0, bebidas);
 
         when(secaoRepository.findById(1L)).thenReturn(Optional.ofNullable(secaoAlcoolica));

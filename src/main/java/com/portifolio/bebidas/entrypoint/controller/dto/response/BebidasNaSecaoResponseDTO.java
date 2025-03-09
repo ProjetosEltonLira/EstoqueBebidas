@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDateTime;
 
-public record BebidasNaSecaoResponseDto(
+public record BebidasNaSecaoResponseDTO(
 
         @JsonProperty (value = "bebida_id") Long bebidaId,
         @JsonProperty (value = "nome_bebida") String nomeBebida,

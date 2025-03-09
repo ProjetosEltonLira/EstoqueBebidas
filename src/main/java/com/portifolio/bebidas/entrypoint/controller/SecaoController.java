@@ -4,7 +4,7 @@ import com.portifolio.bebidas.core.service.SecaoService;
 import com.portifolio.bebidas.entrypoint.controller.dto.request.InserirBebidaSecaoDto;
 
 
-import com.portifolio.bebidas.entrypoint.controller.dto.request.SecaoDto;
+import com.portifolio.bebidas.entrypoint.controller.dto.request.SecaoDTO;
 import com.portifolio.bebidas.entrypoint.controller.dto.response.Data;
 import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseSecaoDTO;
 
@@ -36,7 +36,7 @@ public class SecaoController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> criarSecao (@Valid @RequestBody SecaoDto dto) {
+    public ResponseEntity<Void> criarSecao (@Valid @RequestBody SecaoDTO dto) {
         logger.info("Recebida solicitação para criar seção: {}", JsonUtil.toJson(dto));
 
             var response = secaoService.criarSecao(dto);

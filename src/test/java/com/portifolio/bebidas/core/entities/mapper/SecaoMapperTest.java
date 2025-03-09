@@ -3,10 +3,10 @@ package com.portifolio.bebidas.core.entities.mapper;
 import com.portifolio.bebidas.core.entities.*;
 import com.portifolio.bebidas.core.mapper.BebidaMapper;
 import com.portifolio.bebidas.core.mapper.SecaoMapper;
+import com.portifolio.bebidas.entrypoint.controller.dto.response.BebidasNaSecaoResponseDTO;
 import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseSecaoDTO;
 import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseSecaoHistoricoDTO;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,20 +15,23 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class SecaoMapperTest {
 
+    @Mock
+    private BebidaMapper bebidaMapper;
+
     @InjectMocks
     private SecaoMapper secaoMapper = Mappers.getMapper(SecaoMapper.class);
-
-    @Mock
-    BebidaMapper bebidaMapper = Mappers.getMapper(BebidaMapper.class);
 
     TipoBebidaEntity tipoBebidaAlcoolica;
     TipoBebidaEntity tipoBebidaSemAlcool;
@@ -40,9 +43,6 @@ class SecaoMapperTest {
 
     @BeforeEach
     void setUp() {
-
-        secaoMapper = Mappers.getMapper(SecaoMapper.class);
-        bebidaMapper = Mappers.getMapper(BebidaMapper.class);
 
         tipoBebidaAlcoolica = new TipoBebidaEntity(1L, "ALCOOLICA");
         tipoBebidaSemAlcool = new TipoBebidaEntity(2L, "SEM ALCOOL");
@@ -59,36 +59,48 @@ class SecaoMapperTest {
 
         secaoAlcoolica.setBebidaSecaoEntities(listBebidasNaSecao);
     }
+
     @Nested
     class testeMapperSecao {
 
         @Test
-        @DisplayName("Deve Mapear o SecaoEntity Para o ResponseSecaoHistoricoDTO")
-        void deveMapearSecaoEntityParaResponseSecaoHistoricoDTO() {
+        void testToResponseSecaoDto() {
 
-            ResponseSecaoHistoricoDTO responseSecaoHistoricoDTO = secaoMapper.toResponseSecaoHistoricoDTO(secaoAlcoolica);
+            //Arrange
+            var listBebidasNaSecao =
+                    List.of(new BebidasNaSecaoResponseDTO(1L, "WISK", "ALCOOLICA", 90.0, LocalDateTime.now()),
+                            new BebidasNaSecaoResponseDTO(2L, "BOURBON", "ALCOOLICA", 110.0, LocalDateTime.now()));
 
-            assertNotNull(responseSecaoHistoricoDTO);
-            assertEquals(1L, responseSecaoHistoricoDTO.id());
-            assertEquals("SECAO ALCOOLICA", responseSecaoHistoricoDTO.nome());
+            when(bebidaMapper.toBebidasNaSecaoResponseDtoList(secaoAlcoolica.getBebidaSecaoEntities())).thenReturn(listBebidasNaSecao);
+
+            //Act
+            ResponseSecaoDTO dto = secaoMapper.toResponseSecaoDto(secaoAlcoolica);
+            //Assert
+            assertNotNull(dto);
+            assertEquals(1L, dto.secaoId());
+            assertEquals("ALCOOLICA", dto.tipoSecao());
+            assertEquals("SECAO ALCOOLICA", dto.nomeSecao());
+            assertEquals(300.0, dto.quantidadeTotal());
+            assertEquals(1L, dto.bebidas().get(0).bebidaId());
+            assertEquals("WISK", dto.bebidas().get(0).nomeBebida());
+            assertEquals("ALCOOLICA", dto.bebidas().get(0).tipoBebida());
+            assertEquals(90.0, dto.bebidas().get(0).quantidadeBebida());
+
+            verify(bebidaMapper, times(1)).toBebidasNaSecaoResponseDtoList(any());
         }
 
-//        @Test
-//        @DisplayName("Deve Mapear o SecaoEntity Para o ResponseSecaoDTO")
-//        void deveMapearSecaoEntitytoResponseSecaoDto() {
-//
-//            ResponseSecaoDTO responseSecaoDTO = secaoMapper.toResponseSecaoDto(secaoAlcoolica);
-//
-//            assertNotNull(responseSecaoDTO);
-//            assertEquals(1L, responseSecaoDTO.secaoId());
-//            assertEquals("SECAO ALCOOLICA", responseSecaoDTO.nomeSecao());
-//            assertEquals(300.0, responseSecaoDTO.quantidadeTotal());
-//            assertEquals("ALCOOLICA", responseSecaoDTO.tipoSecao());
-//            assertEquals(1L, responseSecaoDTO.bebidas().get(0).bebidaId());
-//            assertEquals("Cachaça", responseSecaoDTO.bebidas().get(0).nomeBebida());
-//            assertEquals(90.0, responseSecaoDTO.bebidas().get(0).quantidadeBebida());
-//            assertEquals("ALCOOLICA", responseSecaoDTO.bebidas().get(0).tipoBebida());
-//
-//        }
+        @Test
+        void testToResponseSecaoHistoricoDTO() {
+            SecaoEntity secaoEntity = new SecaoEntity();
+            secaoEntity.setSecaoId(1L);
+            secaoEntity.setNomeSecao("Refrigerantes");
+
+            ResponseSecaoHistoricoDTO dto = secaoMapper.toResponseSecaoHistoricoDTO(secaoEntity);
+
+            assertNotNull(dto);
+            assertEquals(1L, dto.id());
+            assertEquals("Refrigerantes", dto.nome());
+        }
+
     }
 }

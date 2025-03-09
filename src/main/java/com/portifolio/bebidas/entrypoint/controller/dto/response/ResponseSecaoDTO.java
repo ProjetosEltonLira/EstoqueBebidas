@@ -11,6 +11,6 @@ public record ResponseSecaoDTO(
         @JsonProperty (value = "nome_secao") String nomeSecao,
         @JsonProperty (value = "tipo_secao") String tipoSecao,
         @JsonProperty (value = "quantidade_total") Double quantidadeTotal,
-        @JsonProperty (value = "bebidas") List<BebidasNaSecaoResponseDto> bebidas
+        @JsonProperty (value = "bebidas") List<BebidasNaSecaoResponseDTO> bebidas
 ){
 }

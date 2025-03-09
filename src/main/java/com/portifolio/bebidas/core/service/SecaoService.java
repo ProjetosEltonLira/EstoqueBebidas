@@ -3,7 +3,7 @@ package com.portifolio.bebidas.core.service;
 import com.portifolio.bebidas.core.exceptions.*;
 import com.portifolio.bebidas.entrypoint.controller.dto.request.DadosBebidaSecaoDto;
 import com.portifolio.bebidas.entrypoint.controller.dto.request.InserirBebidaSecaoDto;
-import com.portifolio.bebidas.entrypoint.controller.dto.request.SecaoDto;
+import com.portifolio.bebidas.entrypoint.controller.dto.request.SecaoDTO;
 import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseSecaoDTO;
 import com.portifolio.bebidas.core.entities.BebidaSecaoEntity;
 import com.portifolio.bebidas.core.entities.BebidaSecaoId;
@@ -43,7 +43,7 @@ public class SecaoService {
 
     }
 
-    public SecaoEntity criarSecao(@Valid SecaoDto dto) {
+    public SecaoEntity criarSecao(@Valid SecaoDTO dto) {
         logger.info("Iniciando criação da seção: {}", JsonUtil.toJson(dto));
 
         long quantidadeSecoes = secaoRepository.quantidadeSecoesAtivas();

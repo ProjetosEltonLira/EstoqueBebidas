@@ -1,9 +1,9 @@
 package com.portifolio.bebidas.core.mapper;
 
 
+import com.portifolio.bebidas.entrypoint.controller.dto.response.BebidasNaSecaoResponseDTO;
 import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseBebidaHistoricoDTO;
 import com.portifolio.bebidas.core.enums.TipoBebida;
-import com.portifolio.bebidas.entrypoint.controller.dto.response.BebidasNaSecaoResponseDto;
 import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseFindAllBebidasDto;
 import com.portifolio.bebidas.core.entities.BebidaEntity;
 import com.portifolio.bebidas.core.entities.BebidaSecaoEntity;
@@ -41,14 +41,9 @@ public interface BebidaMapper {
     @Mapping(target = "tipoBebida", source = "id.bebida.tipoBebida", qualifiedByName = "mapDescricaoTipoBebida")
     @Mapping(target = "quantidadeBebida", source = "quantidadeBebida")
     @Mapping(target = "dataCadastro", source = "dataCadastro")
-    BebidasNaSecaoResponseDto toBebidasNaSecaoResponseDto(BebidaSecaoEntity bebidaSecaoEntity);
+    BebidasNaSecaoResponseDTO toBebidasNaSecaoResponseDto(BebidaSecaoEntity bebidaSecaoEntity);
 
-    List<BebidasNaSecaoResponseDto> toBebidasNaSecaoResponseDtoList(List<BebidaSecaoEntity> bebidaSecaoEntities);
-
-
-//    @Mapping(target = "id", source = "bebidaId")
-//    @Mapping(target = "nome", source = "nomeBebida")
-//    ResponseBebidaHistoricoDTO toResponseBebidaHistoricoDTO(BebidaEntity bebidaEntity);
+    List<BebidasNaSecaoResponseDTO> toBebidasNaSecaoResponseDtoList(List<BebidaSecaoEntity> bebidaSecaoEntities);
 
     default ResponseBebidaHistoricoDTO toResponseBebidaHistoricoDTO(BebidaEntity bebidaEntity, Double volumeBebida) {
         if (bebidaEntity == null) {
