@@ -1,14 +1,14 @@
 package com.portifolio.bebidas.entrypoint.controller;
 
 import com.portifolio.bebidas.core.entities.HistoricoEntity;
-import com.portifolio.bebidas.core.entities.mapper.HistoricoMapper;
+import com.portifolio.bebidas.core.mapper.HistoricoMapper;
 import com.portifolio.bebidas.core.service.BebidaService;
 import com.portifolio.bebidas.entrypoint.controller.dto.request.InserirBebidaDto;
 import com.portifolio.bebidas.entrypoint.controller.dto.response.ApiResponseDto;
 import com.portifolio.bebidas.entrypoint.controller.dto.response.PaginationResponseDTO;
 
 import com.portifolio.bebidas.core.entities.BebidaEntity;
-import com.portifolio.bebidas.core.entities.mapper.BebidaMapper;
+import com.portifolio.bebidas.core.mapper.BebidaMapper;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;

@@ -26,6 +26,6 @@ public class TipoBebidaService {
 
     private TipoBebidaEntity findById(Long codigoTipoBebida) {
         return tipoBebidaRepository.findById(codigoTipoBebida)
-                .orElseThrow(() -> new TipoDeBebidaNaoEncontradoException("Tipo de bebida não encontrado!"));
+                .orElseThrow(() -> new TipoDeBebidaNaoEncontradoException("Tipo de bebida não encontrado."));
     }
 }

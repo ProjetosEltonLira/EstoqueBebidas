@@ -1,8 +1,8 @@
 package com.portifolio.bebidas.core.service;
 
 import com.portifolio.bebidas.core.entities.*;
-import com.portifolio.bebidas.core.entities.mapper.BebidaMapper;
-import com.portifolio.bebidas.core.entities.mapper.SecaoMapper;
+import com.portifolio.bebidas.core.mapper.BebidaMapper;
+import com.portifolio.bebidas.core.mapper.SecaoMapper;
 import com.portifolio.bebidas.core.exceptions.*;
 import com.portifolio.bebidas.core.repository.SecaoRepository;
 import com.portifolio.bebidas.entrypoint.controller.dto.request.DadosBebidaSecaoDto;
@@ -10,7 +10,7 @@ import com.portifolio.bebidas.entrypoint.controller.dto.request.DadosSecaoDto;
 import com.portifolio.bebidas.entrypoint.controller.dto.request.InserirBebidaSecaoDto;
 import com.portifolio.bebidas.entrypoint.controller.dto.request.SecaoDto;
 import com.portifolio.bebidas.entrypoint.controller.dto.response.BebidasNaSecaoResponseDto;
-import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseSecaoDto;
+import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseSecaoDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -376,7 +376,7 @@ class SecaoServiceTest {
     void procurarPorSecao() {
 
         var bebidas = List.of(new BebidasNaSecaoResponseDto(1L, "teste", "ALCOOLICA", 50.0, LocalDateTime.now()));
-        ResponseSecaoDto responseSecaoDto = new ResponseSecaoDto(1L, "Teste Secao", "ALCOOLICA", 300.0, bebidas);
+        ResponseSecaoDTO responseSecaoDto = new ResponseSecaoDTO(1L, "Teste Secao", "ALCOOLICA", 300.0, bebidas);
 
         when(secaoRepository.findById(1L)).thenReturn(Optional.ofNullable(secaoAlcoolica));
         doReturn(responseSecaoDto).when(secaoMapper).toResponseSecaoDto(secaoAlcoolica);

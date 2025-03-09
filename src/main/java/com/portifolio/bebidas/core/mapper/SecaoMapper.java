@@ -1,6 +1,6 @@
-package com.portifolio.bebidas.core.entities.mapper;
+package com.portifolio.bebidas.core.mapper;
 
-import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseSecaoDto;
+import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseSecaoDTO;
 import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseSecaoHistoricoDTO;
 import com.portifolio.bebidas.core.entities.BebidaSecaoEntity;
 import com.portifolio.bebidas.core.entities.SecaoEntity;
@@ -20,7 +20,7 @@ public interface SecaoMapper {
     @Mapping(target = "tipoSecao", source = "tipoBebida.descricao") // Mapear a descrição do tipo de bebida
     @Mapping(target = "quantidadeTotal", expression = "java(calcularQuantidadeTotal(entity.getBebidaSecaoEntities()))") // Calcular quantidade total
     @Mapping(target = "bebidas", source = "bebidaSecaoEntities") // Lista de bebidas
-    ResponseSecaoDto toResponseSecaoDto(SecaoEntity entity);
+    ResponseSecaoDTO toResponseSecaoDto(SecaoEntity entity);
 
     default Double calcularQuantidadeTotal(List<BebidaSecaoEntity> bebidaSecaoEntities) {
         if (bebidaSecaoEntities == null || bebidaSecaoEntities.isEmpty()) {

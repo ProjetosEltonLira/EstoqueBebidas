@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
-public record ResponseSecaoDto(
+public record ResponseSecaoDTO(
 
         @JsonProperty (value = "id_secao") Long secaoId,
         @JsonProperty (value = "nome_secao") String nomeSecao,

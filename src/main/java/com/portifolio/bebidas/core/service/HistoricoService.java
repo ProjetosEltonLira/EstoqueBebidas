@@ -18,7 +18,6 @@ public class HistoricoService {
 
     public HistoricoService(HistoricoRepository historicoRepository) {
         this.historicoRepository = historicoRepository;
-
     }
 
     public Page<HistoricoEntity> procurarHistoricoDaBebida(int page, int pageSize, String orderBy, Long bebidaId) {

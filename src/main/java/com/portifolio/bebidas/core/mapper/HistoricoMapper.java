@@ -1,4 +1,4 @@
-package com.portifolio.bebidas.core.entities.mapper;
+package com.portifolio.bebidas.core.mapper;
 
 import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseBebidaHistoricoDTO;
 import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseHistoricoDTO;

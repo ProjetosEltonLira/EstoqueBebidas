@@ -38,7 +38,7 @@ public class BebidaService {
 
     public Page<BebidaEntity> findAll(int page, int pageSize, String orderBy) {
 
-        var direction = Sort.Direction.DESC; // Define a direção da ordenação como decrescente
+        var direction = Sort.Direction.DESC;
         if (orderBy.equalsIgnoreCase("asc")) {
             direction = Sort.Direction.ASC;
         }

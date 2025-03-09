@@ -4,12 +4,12 @@ import com.portifolio.bebidas.core.exceptions.*;
 import com.portifolio.bebidas.entrypoint.controller.dto.request.DadosBebidaSecaoDto;
 import com.portifolio.bebidas.entrypoint.controller.dto.request.InserirBebidaSecaoDto;
 import com.portifolio.bebidas.entrypoint.controller.dto.request.SecaoDto;
-import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseSecaoDto;
+import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseSecaoDTO;
 import com.portifolio.bebidas.core.entities.BebidaSecaoEntity;
 import com.portifolio.bebidas.core.entities.BebidaSecaoId;
 import com.portifolio.bebidas.core.entities.HistoricoEntity;
 import com.portifolio.bebidas.core.entities.SecaoEntity;
-import com.portifolio.bebidas.core.entities.mapper.SecaoMapper;
+import com.portifolio.bebidas.core.mapper.SecaoMapper;
 import com.portifolio.bebidas.core.enums.TipoBebida;
 import com.portifolio.bebidas.core.enums.TipoRegistro;
 import com.portifolio.bebidas.core.repository.SecaoRepository;
@@ -207,7 +207,7 @@ public class SecaoService {
                 .sum();
     }
 
-    public ResponseSecaoDto procurarSecaoPorId(Long idSecao) {
+    public ResponseSecaoDTO procurarSecaoPorId(Long idSecao) {
         return secaoMapper.toResponseSecaoDto(findById(idSecao));
     }
 

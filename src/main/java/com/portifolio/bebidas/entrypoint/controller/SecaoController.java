@@ -6,7 +6,7 @@ import com.portifolio.bebidas.entrypoint.controller.dto.request.InserirBebidaSec
 
 import com.portifolio.bebidas.entrypoint.controller.dto.request.SecaoDto;
 import com.portifolio.bebidas.entrypoint.controller.dto.response.Data;
-import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseSecaoDto;
+import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseSecaoDTO;
 
 import com.portifolio.bebidas.core.utils.HeaderUtil;
 import com.portifolio.bebidas.core.utils.JsonUtil;
@@ -59,7 +59,7 @@ public class SecaoController {
 
 
     @GetMapping(path = "/{idSecao}")
-    public ResponseEntity<Data<ResponseSecaoDto>> buscarBebidasNaSecao(
+    public ResponseEntity<Data<ResponseSecaoDTO>> buscarBebidasNaSecao(
             @PathVariable Long idSecao){
 
         var response = secaoService.procurarSecaoPorId(idSecao);

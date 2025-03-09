@@ -1,9 +1,8 @@
-package com.portifolio.bebidas.core.entities.mapper;
+package com.portifolio.bebidas.core.mapper;
 
 
 import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseBebidaHistoricoDTO;
 import com.portifolio.bebidas.core.enums.TipoBebida;
-import com.portifolio.bebidas.entrypoint.controller.dto.request.DadosBebidaDto;
 import com.portifolio.bebidas.entrypoint.controller.dto.response.BebidasNaSecaoResponseDto;
 import com.portifolio.bebidas.entrypoint.controller.dto.response.ResponseFindAllBebidasDto;
 import com.portifolio.bebidas.core.entities.BebidaEntity;
